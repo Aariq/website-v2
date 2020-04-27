@@ -4,3 +4,14 @@
 # Hugo
 resources/
 public/
+
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Other
+.DS_Store
+*.pages
+*.icloud
