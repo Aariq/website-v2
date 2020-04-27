@@ -23,7 +23,7 @@ math: yes
 <h1>Multivariate data</h1>
 <p>Multivariate data means data with many things measured on the same samples or observations. In this example, recipes are the observations and the variables are the ingredients measured in US cups per serving. One common problem associated with multivariate data is that usually many of the variables are correlated.</p>
 <div class="figure"><span id="fig:unnamed-chunk-2"></span>
-<img src="/post/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-2-1.png" alt="Correlation plot made using the `corrr` package" width="672" />
+<img src="/post/cupcakes_v_muffins/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-2-1.png" alt="Correlation plot made using the `corrr` package" width="672" />
 <p class="caption">
 Figure 1: Correlation plot made using the <code>corrr</code> package
 </p>
@@ -106,7 +106,7 @@ nofrosting</code></pre>
 ## Total    0.513   5   0</code></pre>
 <p>A few ingredients get dropped because none of the recipes in my random sample of 30 have those ingredients. Notice that “type” is excluded in the PCA. PCA is totally agnostic to whether a recipe is for muffins or cupcakes.</p>
 <div class="figure"><span id="fig:unnamed-chunk-8"></span>
-<img src="/post/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-8-1.png" alt="PCA score and loading plot.  Muffins recipes (brown) separate only slightly from cupcake recipes (red) along PC2" width="960" />
+<img src="/post/cupcakes_v_muffins/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-8-1.png" alt="PCA score and loading plot.  Muffins recipes (brown) separate only slightly from cupcake recipes (red) along PC2" width="960" />
 <p class="caption">
 Figure 4: PCA score and loading plot. Muffins recipes (brown) separate only slightly from cupcake recipes (red) along PC2
 </p>
@@ -137,7 +137,7 @@ Figure 4: PCA score and loading plot. Muffins recipes (brown) separate only slig
 <p>So, we can conclude that cupcakes <strong>are</strong> different than muffins (p &lt; 0.005)!</p>
 <p>Let’s see what ingredients contribute most to this difference.</p>
 <div class="figure"><span id="fig:unnamed-chunk-10"></span>
-<img src="/post/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-10-1.png" alt="PLS-DA score and loading plot.  Muffins (brown) and cupcakes (red) are significantly different!" width="960" />
+<img src="/post/cupcakes_v_muffins/2019-03-21-cupcakes-vs-muffins-round-2_files/figure-html/unnamed-chunk-10-1.png" alt="PLS-DA score and loading plot.  Muffins (brown) and cupcakes (red) are significantly different!" width="960" />
 <p class="caption">
 Figure 5: PLS-DA score and loading plot. Muffins (brown) and cupcakes (red) are significantly different!
 </p>
