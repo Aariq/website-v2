@@ -30,8 +30,8 @@
 
 [[main]]
   name = "Blog"
-  url = "post" #link to separate page
-  #url = "#posts" #scroll down to widget
+  #url = "post" #link to separate page
+  url = "#posts" #scroll down to widget
   weight = 60
 
 # Link to a PDF of your resume/CV from the menu.
