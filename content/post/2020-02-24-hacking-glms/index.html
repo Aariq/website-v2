@@ -37,7 +37,7 @@ head(wolves)</code></pre>
 ## 5  1986         15        15        NA        NA        NA        NA
 ## 6  1987         10        10        NA        NA        NA        NA
 ## # … with 1 more variable: year_post &lt;dbl&gt;</code></pre>
-<p><img src="/post/2020-02-24-hacking-glms_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p><img src="/post/2020-02-24-hacking-glms/index_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 </div>
 <div id="exponential-growth" class="section level1">
 <h1>Exponential growth</h1>
@@ -64,7 +64,7 @@ exp(coef(m_exp))</code></pre>
 ##   19.615307    1.176583</code></pre>
 <p>The backtransformed intercept is the estimate for <span class="math inline">\(N_0\)</span>, the estimated number of wolves at <code>year_post</code> = 0</p>
 <p>The backtransformed coefficient for <code>year_post</code> = <span class="math inline">\(\lambda\)</span>, the population growth rate</p>
-<p><img src="/post/2020-02-24-hacking-glms_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="/post/2020-02-24-hacking-glms/index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 </div>
 <div id="process-error" class="section level1">
@@ -100,7 +100,7 @@ N_{t+1} = e^{\beta_0} \times N_{t}
 <p>So, if there are 13 wolves in 1985, how many would it predict in 1986?</p>
 <pre class="r"><code>1.108238 * 13</code></pre>
 <pre><code>## [1] 14.40709</code></pre>
-<p><img src="/post/2020-02-24-hacking-glms_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="/post/2020-02-24-hacking-glms/index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 </div>
 <div id="ricker-model" class="section level1">
@@ -140,6 +140,6 @@ log(N_{t+1})= r-\frac{r}{K}N_{t} + \textrm{offset}[log(N_{t})]
 ##     1853.18</code></pre>
 <pre class="r"><code>emo::ji(&quot;exploding_head&quot;)</code></pre>
 <pre><code>## 🤯</code></pre>
-<p><img src="/post/2020-02-24-hacking-glms_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="/post/2020-02-24-hacking-glms/index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 </div>
 </div>
