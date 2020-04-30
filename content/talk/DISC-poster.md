@@ -39,4 +39,4 @@ highlight = false
 # caption = "My caption :smile:"
 
 +++
-Poster presentation
+{{< icon name="chalkboard-teacher" pack="fas" >}} Poster presentation
