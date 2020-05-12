@@ -10,7 +10,7 @@ authors:
 superuser: true
 
 # Role/position
-role: PhD Student
+role: PhD in Biology
 
 # Organizations/Affiliations
 organizations:
