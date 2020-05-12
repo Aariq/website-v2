@@ -10,10 +10,9 @@ tags:
   - modeling
 draft: no
 math: yes
-header:
-  caption: ''
-  image: ''
-  preview: yes
+image:
+  caption: ""
+  focal_point: ""
 ---
 
 I'm currently teaching Ecological Statistics and Data, a class I inherited from [Lee Brown](http://ase.tufts.edu/biology/labs/crone/cronies) and [Elizabeth Crone](https://ase.tufts.edu/biology/faculty/crone/). In a lecture on population dynamics, they do some really cool things with generalized linear model---things that I don't think are standard practice and as far as I can tell from googling, aren't well documented. And let me tell you, I did a **lot** of googling to make sure I understood this stuff before teaching it. So, I thought I'd put it up on the blog for others.
@@ -24,8 +23,7 @@ I'll be using data on the Northern Rocky Mountain grey wolf population.  You can
 
 ```{r message=FALSE}
 library(tidyverse)
-library(here)
-wolves <- read_csv(here("static", "files", "NRMwolves.csv")) %>%
+wolves <- read_csv("NRMwolves.csv") %>%
   mutate(year_post = year - 1982) 
 head(wolves)
 ```

@@ -8,10 +8,9 @@ categories:
 tags:
   - Python
 draft: yes
-header:
-  caption: ''
-  image: ''
-  preview: yes
+image:
+  caption: ""
+  focal_point: ""
 ---
 
 It all started when my officemate [Avalon](https://twitter.com/avalonceleste) showed me a simple timelapse of an office plant.

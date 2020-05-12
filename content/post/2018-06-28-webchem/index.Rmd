@@ -28,7 +28,7 @@ My PhD has involved learning a lot more than I expected about analytical chemist
 Papers that use gas chromatography to separate and measure chemicals often include a table of the compounds they found along with experimental retention indices and literature retention indices. A retention index is basically a corrected retention time---the time it took for the particular chemical to make it through the gas chromatograph, an instrument designed to separate chemicals, to the detector used to identify the compound (e.g. an FID or mass spectrometer). While the retention time for a particular compound might vary from run to run or beetween labs, the retention **index** should be comparable. Therefore, they are often used to help identify compounds and [NIST](https://webbook.nist.gov/chemistry/) maintains a database of retention indeces for researchers to refer to.
 
 ```{r echo=FALSE,fig.cap="An example table including literature retention indices from [Kowalsick, et al. 2014](https://doi.org/10.1016/j.chroma.2014.10.058)"}
-include_graphics("/img/kowalsick table.png")
+include_graphics("kowalsick table.png")
 ```
 
 Producing such a table of literature retention indices for potentially hundreds of metabolites by hand can be really tedious!

@@ -27,7 +27,7 @@ image:
 
 <p>As part of my fieldwork in China, I collected harvested tea leaves that were damaged by the tea green leafhopper. I want to quantify the amount of leafhopper damage for each harvest. I was able to find several solutions for quantifying holes in leaves or even damage to leaf margins, but typical leafhopper damage is just tiny brown spots on the undersides of leaves. I did find some tutorials on using <a href="http://imagej.net/Welcome">ImageJ</a> to analyze diseased area on leaves, but found that the leafhopper damage spots were too small and too similar in color to undamaged leaves for these tools to work reliably and be automated.</p>
 <div class="figure" style="text-align: left"><span id="fig:leaf-fig"></span>
-<img src="/img/damaged leaf.png" alt="Typical leafhopper damage" width="60%" />
+<img src="damaged%20leaf.png" alt="Typical leafhopper damage" width="60%" />
 <p class="caption">
 Figure 1: Typical leafhopper damage
 </p>
@@ -38,7 +38,7 @@ Figure 1: Typical leafhopper damage
 <p>Just to clarify, my goal here is not image classification—that is, I’m not trying to classify leaves into categories like “undamaged”, “medium damaged”, “high damage”, but rather trying to classify individual pixels in the image as being damaged or undamaged leaf tissue (or background).</p>
 <p>In short, after selecting some pixels representative of damaged leaf, undamaged leaf, and background (regions of interest, or ROIs), the WEKA plugin trains a random forest algorithm using data from various transformations of the pixels in the ROIs. Then, I can apply the algorithm to other images and extract data in the form of numbers of pixels classified in each category.</p>
 <div class="figure"><span id="fig:example-result"></span>
-<img src="/img/analyzed leaf.png" alt="example results of WEKA classification" width="60%" />
+<img src="analyzed%20leaf.png" alt="example results of WEKA classification" width="60%" />
 <p class="caption">
 Figure 2: example results of WEKA classification
 </p>
@@ -57,7 +57,7 @@ Figure 2: example results of WEKA classification
 <p>We trained the classifier on three classes, background, damaged leaf, and undamaged leaf. For background and undamaged leaf, we found it was really important to focus on leaf edges, making sure to include shadows in the background class and lighter green leaf margins in the undamaged class. Without doing this, the classifier would consistently mis-classify shadows and edges as either damaged or background, respectively. This was also an iterative process and took several rounds of selecting ROIs, training a classifier, viewing results, and adding more ROIs. Once we were satisfied with our classifier, we saved it and applied it to all of our images in stacks of 20 on a computer with 32 GB of RAM. The results
 created by the WEKA plugin are stacks of three color images (because we used 3 classes). Getting numerical results turned out to be another problem.</p>
 <div class="figure"><span id="fig:screenshot"></span>
-<img src="/img/WEKA screenshot.png" alt="WEKA segmentation window with ROIs selected"  />
+<img src="WEKA%20screenshot.png" alt="WEKA segmentation window with ROIs selected" width="1036" />
 <p class="caption">
 Figure 3: WEKA segmentation window with ROIs selected
 </p>

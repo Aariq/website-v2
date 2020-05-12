@@ -9,10 +9,15 @@ tags:
   - Python
   - R
 draft: false
-header:
-  image: "headers/python_is_weird.png"
+image:
+  caption: ""
+  focal_point: ""
 ---
-
+```{r include=FALSE}
+library(knitr)
+library(reticulate)
+opts_chunk$set(results="hold")
+```
 
 Last semester I took a class that used Python. It was my first time really seriously using any programing language other than R. The students were about half engineers and half biologists.  The vast majority of the biologists knew R to varying degrees, but had no experience with Python, and the engineers seemed to generally have some experience with Python, or at least with languages more similar to it than R. I wish that the instructor could have taught every Python lecture like "Ok, today we're going to learn the Python equivalent of doing ____ in R", but of course that wouldn't be fair to about half the students.
 
@@ -22,56 +27,23 @@ So for anyone else making the leap from R to Python, here are three things that 
 Let me just show you first and see if you can figure out what is going on:
 
 *R Code:*
-
-```r
+```{r}
 # R
 x = c(10, 20, 30, 40, 50)
 x[1]
 x[1:3]
 x[4:5]
 ```
-
-```
-## [1] 10
-## [1] 10 20 30
-## [1] 40 50
-```
 Cool, cool.
 
 *Equivalent in Python:*
-
-```python
+```{python}
 # Python
 x = [10, 20, 30, 40, 50]
 print(x[1])
-```
-
-```
-## 20
-```
-
-```python
 print(x[0])
-```
-
-```
-## 10
-```
-
-```python
 print(x[3:4])
-```
-
-```
-## [40]
-```
-
-```python
 print(x[3:5])
-```
-
-```
-## [40, 50]
 ```
 Wait, what? Two things are really weird about this.  First, the first position in the vector is not position 1, it is position 0.  Second, `x[3:4]` returns only a single number.  Why?!  Because in Python, the second number in the index is not inclusive, so if you want to get the 4th and 5th values of `x` (index positions 3 and 4 in Python world), then you have to use `x[3:5]` **even though there is NO POSITION 5**.  Terrible.
 
@@ -81,8 +53,7 @@ Wait, what? Two things are really weird about this.  First, the first position i
 R is built for doing math and statistics, so vectors and matrices are built in and you can do math on them!
 
 *R Code:*
-
-```r
+```{r}
 # R
 x = c(1, 2, 3)
 x + 10
@@ -92,82 +63,33 @@ x + y
 #Yay vector arithmetic!
 ```
 
-```
-## [1] 11 12 13
-## [1] 2 4 6
-## [1]  6  8 10
-```
-
 Python is **not** built with math and statistics in mind, and this doesn't work without using a package.
 
 *Equivalent in Python:*
-
-```python
+```{python}
 # Python
 x = [1, 2, 3]
 print(x + [10]) 
-```
-
-```
-## [1, 2, 3, 10]
-```
-
-```python
 print(x*3) 
-```
-
-```
-## [1, 2, 3, 1, 2, 3, 1, 2, 3]
-```
-
-```python
 y = [5, 6, 7]
 print(x + y) 
 ```
 
-```
-## [1, 2, 3, 5, 6, 7]
-```
-
 Clearly `+` is doing something different in base Python---it's concatenating `x` and `10`.  Similarly, `*` is not multiplying, but concatenating three `x`s in a row. This is completely ridiculous behavior for numbers, but when you're working with strings, it's actually pretty freakin' great.
 
-
-```python
+```{python}
 # Python
 print(("Yay "+"Python! ") * 5)
 ```
-
-```
-## Yay Python! Yay Python! Yay Python! Yay Python! Yay Python!
-```
 If you want numerical vectors to work like they should, you have to use a special kind of vector called a **numpy array**.  Numpy is a package for Python that provides a bunch of functions that work on numbers.
-
-```python
+```{python}
 # Python
 import numpy as np
 x = np.array([1, 2, 3])
 print(x + 10)
-```
-
-```
-## [11 12 13]
-```
-
-```python
 print(x * 2) 
-```
-
-```
-## [2 4 6]
-```
-
-```python
 y = np.array([5, 6, 7])
 print(x + y)
-```
-
-```
-## [ 6  8 10]
 ```
 If you do math to numpy arrays, you get what you'd expect as an R user.
 
@@ -178,8 +100,7 @@ If you do math to numpy arrays, you get what you'd expect as an R user.
 I'm still trying to wrap my mind around this one, so rather than trying to explain it, let me show you an example first:
 
 *R Code:*
-
-```r
+```{r}
 # R
 a1 = c(1,2,3)
 a2 = a1
@@ -187,57 +108,28 @@ a2[1] = 100
 a1
 a2
 ```
-
-```
-## [1] 1 2 3
-## [1] 100   2   3
-```
 `a1` is, of course, unchanged by changing a value in `a2`.  Let's see if that's true in Python.
 
 *Equivalent in Python:*
-
-```python
+```{python}
 # Python
 import numpy as np
 a1 = np.array([1,2,3])
 a2 = a1
 a2[1] = 100
 print(a1)
-```
-
-```
-## [  1 100   3]
-```
-
-```python
 print(a2)
-```
-
-```
-## [  1 100   3]
 ```
 Changing a value in `a2` *changes* the same value in `a1`! In this case, `a2` is an *alias* of `a1`, not a copy. This only happens when you do `object1 = object2` and not when you do something to `object2` as you're assigning it. Here's another example:
 
-
-```python
+```{python}
 # Python
 import numpy as np
 a1 = np.array([1,2,3])
 a2 = a1 + 2
 a2[1] = 100
 print(a1)
-```
-
-```
-## [1 2 3]
-```
-
-```python
 print(a2)
-```
-
-```
-## [  3 100   5]
 ```
 Now `a2` is a separate object from `a1` instead of just an alias. If you want to make an *exact* copy, you have to do that explicitly with `a2 = np.copy(a1)` or `a2 = a1[:]`
 

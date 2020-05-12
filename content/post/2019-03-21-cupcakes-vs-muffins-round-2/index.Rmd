@@ -2,10 +2,9 @@
 title: 'Cupcakes vs Muffins: Round 2'
 author: "Eric R. Scott"
 date: '2019-03-21'
-header:
-  caption: ''
-  image: headers/cupcake-muffin-header2.png
-  preview: yes
+image:
+  caption: ""
+  focal_point: ""
 draft: no
 slug: cupcakes-vs-muffins-round-2
 tags: 
@@ -70,7 +69,7 @@ Other common difficulties presented by ecological multivariate data include the 
 **Principal component analysis** (PCA) is a multivariate technique that aims to explain the variation in the ingredient amounts, but is **unsupervised**.  That is, it's totally agnostic to whether recipes are muffins or cupcakes.  Imagine a cloud of points in 3D space.  PCA is aiming to draw a line through the spread of that cloud of points. That line explains most of the variation in the data. That line is then rotated and called "principal component 1". Perpendicular to that, principal component 2 is drawn to explain the second greatest amount of variation in the points.  You could then project your points onto this new coordinate space and do some statistical test to determine if your groups (e.g. cupcake or muffin) are different along one or both of these principal components.
 
 ```{r echo=FALSE, fig.cap="Conceptual diagram of PCA"}
-include_graphics("/img/pca.png")
+include_graphics("pca.png")
 ```
 
 Ecologists use unsupervised analyses like PCA all the time, for example to reduce the complexity or "dimensionality" of multivariate datasets like community composition or traits of organisms. But this strategy does not tell you if cupcakes are different from muffins. It tells you: 1) what ingredients vary the most among all cupcake and muffin recipes, and 2) do cupcakes and muffins differ in the amounts of ***those*** ingredients, which isn't exactly the question we are trying to answer.
@@ -80,7 +79,7 @@ Ecologists use unsupervised analyses like PCA all the time, for example to reduc
 To date, supervised analyses like PLS are uncommon in ecology, even though this may often be the kind of question ecologists want to answer. Additionally, PLS is built to handle multicollinearity, the curse of dimensionality, and missing values, which makes it an excellent tool for analyzing ecological data!
 
 ```{r echo=FALSE, fig.cap="Conceptual diagram of PLS-DA"}
-include_graphics("/img/plsda.png")
+include_graphics("plsda.png")
 ```
 
 # The Data

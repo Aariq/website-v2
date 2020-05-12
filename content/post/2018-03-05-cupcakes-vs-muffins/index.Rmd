@@ -13,8 +13,9 @@ tags:
   - data-wrangling
   - webscraping
 draft: false
-header:
-  image: "headers/cupcake-muffin-header.png"
+image:
+  caption: ""
+  focal_point: ""
 ---
 
 One thing I've learned from my PhD at Tufts is that I really enjoy working data wrangling, visualization, and statistics in R.  I enjoy it so much, that lately I've been strongly considering a career in data science after graduation.  As a way to showcase my data science skills, I've been working on a side project to use webscraping and multivariate statistics to answer the age old question: Are cupcakes really *that* different from muffins?
@@ -33,7 +34,7 @@ This is **ALL THE CUPCAKES**.  From there, I played around with SelectorGadget t
 
 ```{r selector-gadget, echo=FALSE, fig.cap="SelectorGadget in action", message=FALSE, warning=FALSE}
 library(knitr)
-include_graphics("/img/selector-gadget.png")
+include_graphics("selector-gadget.png")
 ```
 I also checked that the ingredients list of each recipe was going to be easy to scrape.  They all have the same format, and some brief testing convinced me that I'd be able to figure out how to pull out ingredients.
 

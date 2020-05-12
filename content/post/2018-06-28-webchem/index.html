@@ -23,7 +23,7 @@ header:
 <p>My PhD has involved learning a lot more than I expected about analytical chemistry, and as I’ve been learning, I’ve been trying my best to make my life easier by writing R functions to help me out. Some of those functions have found a loving home in the <code>webchem</code> package, part of <a href="https://ropensci.org/">rOpenSci</a>.</p>
 <p>Papers that use gas chromatography to separate and measure chemicals often include a table of the compounds they found along with experimental retention indices and literature retention indices. A retention index is basically a corrected retention time—the time it took for the particular chemical to make it through the gas chromatograph, an instrument designed to separate chemicals, to the detector used to identify the compound (e.g. an FID or mass spectrometer). While the retention time for a particular compound might vary from run to run or beetween labs, the retention <strong>index</strong> should be comparable. Therefore, they are often used to help identify compounds and <a href="https://webbook.nist.gov/chemistry/">NIST</a> maintains a database of retention indeces for researchers to refer to.</p>
 <div class="figure"><span id="fig:unnamed-chunk-2"></span>
-<img src="/img/kowalsick table.png" alt="An example table including literature retention indices from [Kowalsick, et al. 2014](https://doi.org/10.1016/j.chroma.2014.10.058)"  />
+<img src="kowalsick%20table.png" alt="An example table including literature retention indices from [Kowalsick, et al. 2014](https://doi.org/10.1016/j.chroma.2014.10.058)" width="794" />
 <p class="caption">
 Figure 1: An example table including literature retention indices from <a href="https://doi.org/10.1016/j.chroma.2014.10.058">Kowalsick, et al. 2014</a>
 </p>
@@ -47,17 +47,16 @@ Figure 1: An example table including literature retention indices from <a href="
   )
 head(RIs)</code></pre>
 <pre><code>## # A tibble: 6 x 16
-##   query    RI type  phase length gas   substrate diameter thickness
-##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;
-## 1 83-3…  1410 Capi… SPB-5     60 &lt;NA&gt;  &lt;NA&gt;          0.32      1   
-## 2 83-3…  1380 Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25
-## 3 83-3…  1410 Capi… SE-54     50 Heli… &lt;NA&gt;          0.32     NA   
-## 4 83-3…  1381 Capi… DB-5      30 Hydr… &lt;NA&gt;          0.25      0.25
-## 5 83-3…  1389 Capi… DB-5      30 Nitr… &lt;NA&gt;          0.25      0.25
-## 6 83-3…  1399 Capi… DB-5…     30 &lt;NA&gt;  &lt;NA&gt;          0.25      0.25
-## # … with 7 more variables: temp_start &lt;dbl&gt;, temp_end &lt;dbl&gt;,
-## #   temp_rate &lt;dbl&gt;, hold_start &lt;dbl&gt;, hold_end &lt;dbl&gt;, reference &lt;chr&gt;,
-## #   comment &lt;chr&gt;</code></pre>
+##   query    RI type  phase length gas   substrate diameter thickness temp_start
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 83-3…  1410 Capi… SPB-5     60 &lt;NA&gt;  &lt;NA&gt;          0.32      1            40
+## 2 83-3…  1380 Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25         35
+## 3 83-3…  1410 Capi… SE-54     50 Heli… &lt;NA&gt;          0.32     NA            40
+## 4 83-3…  1381 Capi… DB-5      30 Hydr… &lt;NA&gt;          0.25      0.25         35
+## 5 83-3…  1389 Capi… DB-5      30 Nitr… &lt;NA&gt;          0.25      0.25         30
+## 6 83-3…  1399 Capi… DB-5…     30 &lt;NA&gt;  &lt;NA&gt;          0.25      0.25         40
+## # … with 6 more variables: temp_end &lt;dbl&gt;, temp_rate &lt;dbl&gt;, hold_start &lt;dbl&gt;,
+## #   hold_end &lt;dbl&gt;, reference &lt;chr&gt;, comment &lt;chr&gt;</code></pre>
 <p>You can see there are multiple retention indices (<code>RI</code>) for each CAS number. Let’s filter this down some more using some functions from <code>dplyr</code> and <code>stringr</code>.</p>
 <pre class="r"><code>library(dplyr)
 library(stringr)
@@ -71,21 +70,21 @@ RIs_filtered &lt;-
   rename(CAS = query)
 head(RIs_filtered)</code></pre>
 <pre><code>## # A tibble: 6 x 16
-##   CAS      RI type  phase length gas   substrate diameter thickness
-##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;
-## 1 83-3… 1380  Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25
-## 2 83-3… 1396  Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25
-## 3 83-3… 1391  Capi… DB-5      30 Heli… &lt;NA&gt;          0.26      0.25
-## 4 119-… 1201  Capi… DB-5      25 Heli… &lt;NA&gt;          0.25      0.25
-## 5 119-… 1201. Capi… HP-5…     30 Heli… &lt;NA&gt;          0.25      0.25
-## 6 119-… 1190  Capi… HP-5…     30 Heli… &lt;NA&gt;          0.25      0.25
-## # … with 7 more variables: temp_start &lt;dbl&gt;, temp_end &lt;dbl&gt;,
-## #   temp_rate &lt;dbl&gt;, hold_start &lt;dbl&gt;, hold_end &lt;dbl&gt;, reference &lt;chr&gt;,
-## #   comment &lt;chr&gt;</code></pre>
+##   CAS      RI type  phase length gas   substrate diameter thickness temp_start
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+## 1 83-3… 1380  Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25         35
+## 2 83-3… 1396  Capi… DB-5…     30 Heli… &lt;NA&gt;          0.25      0.25         35
+## 3 83-3… 1391  Capi… DB-5      30 Heli… &lt;NA&gt;          0.26      0.25         50
+## 4 119-… 1201  Capi… DB-5      25 Heli… &lt;NA&gt;          0.25      0.25         60
+## 5 119-… 1201. Capi… HP-5…     30 Heli… &lt;NA&gt;          0.25      0.25         80
+## 6 119-… 1190  Capi… HP-5…     30 Heli… &lt;NA&gt;          0.25      0.25         60
+## # … with 6 more variables: temp_end &lt;dbl&gt;, temp_rate &lt;dbl&gt;, hold_start &lt;dbl&gt;,
+## #   hold_end &lt;dbl&gt;, reference &lt;chr&gt;, comment &lt;chr&gt;</code></pre>
 <p>Now we could <code>summarise</code> to get an average of all the database entries…</p>
 <pre class="r"><code>RIs_filtered %&gt;% 
   group_by(CAS) %&gt;% 
   summarise(mean_RI = mean(RI))</code></pre>
+<pre><code>## `summarise()` ungroup (override with `.groups` argument)</code></pre>
 <pre><code>## # A tibble: 4 x 2
 ##   CAS        mean_RI
 ## * &lt;chr&gt;        &lt;dbl&gt;

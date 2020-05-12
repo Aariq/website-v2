@@ -30,7 +30,7 @@ library(knitr)
 As part of my fieldwork in China, I collected harvested tea leaves that were damaged by the tea green leafhopper. I want to quantify the amount of leafhopper damage for each harvest.  I was able to find several solutions for quantifying holes in leaves or even damage to leaf margins, but typical leafhopper damage is just tiny brown spots on the undersides of leaves. I did find some tutorials on using [ImageJ](http://imagej.net/Welcome) to analyze diseased area on leaves, but found that the leafhopper damage spots were too small and too similar in color to undamaged leaves for these tools to work reliably and be automated.
 
 ```{r leaf-fig, echo=FALSE, fig.cap="Typical leafhopper damage", out.width="60%", fig.align='left'}
-include_graphics("/img/damaged leaf.png")
+include_graphics("damaged leaf.png")
 
 ```
 
@@ -42,7 +42,7 @@ Just to clarify, my goal here is not image classification---that is, I'm not try
 In short, after selecting some pixels representative of damaged leaf, undamaged leaf, and background (regions of interest, or ROIs), the WEKA plugin trains a random forest algorithm using data from various transformations of the pixels in the ROIs. Then, I can apply the algorithm to other images and extract data in the form of numbers of pixels classified in each category.
 
 ```{r example-result, echo=FALSE, fig.cap="example results of WEKA classification", out.width="60%"}
-include_graphics("/img/analyzed leaf.png")
+include_graphics("analyzed leaf.png")
 
 ```
 
@@ -61,7 +61,7 @@ created by the WEKA plugin are stacks of three color images (because we used 3 c
 
 
 ```{r screenshot, echo=FALSE, fig.cap="WEKA segmentation window with ROIs selected"}
-include_graphics("/img/WEKA screenshot.png")
+include_graphics("WEKA screenshot.png")
 ```
 
 ### Exporting results

@@ -2,10 +2,9 @@
 title: 'Cupcakes vs Muffins: Round 2'
 author: "Eric R. Scott"
 date: '2019-03-21'
-header:
-  caption: ''
-  image: headers/cupcake-muffin-header2.png
-  preview: yes
+image:
+  caption: ""
+  focal_point: ""
 draft: no
 slug: cupcakes-vs-muffins-round-2
 tags: 
@@ -35,7 +34,7 @@ Figure 1: Correlation plot made using the <code>corrr</code> package
 <h1>Unsupervised and Supervised analyses</h1>
 <p><strong>Principal component analysis</strong> (PCA) is a multivariate technique that aims to explain the variation in the ingredient amounts, but is <strong>unsupervised</strong>. That is, it’s totally agnostic to whether recipes are muffins or cupcakes. Imagine a cloud of points in 3D space. PCA is aiming to draw a line through the spread of that cloud of points. That line explains most of the variation in the data. That line is then rotated and called “principal component 1”. Perpendicular to that, principal component 2 is drawn to explain the second greatest amount of variation in the points. You could then project your points onto this new coordinate space and do some statistical test to determine if your groups (e.g. cupcake or muffin) are different along one or both of these principal components.</p>
 <div class="figure"><span id="fig:unnamed-chunk-3"></span>
-<img src="/img/pca.png" alt="Conceptual diagram of PCA"  />
+<img src="pca.png" alt="Conceptual diagram of PCA" width="450" />
 <p class="caption">
 Figure 2: Conceptual diagram of PCA
 </p>
@@ -44,7 +43,7 @@ Figure 2: Conceptual diagram of PCA
 <p><strong>Partial least squares regression</strong> (PLS) and its discriminant analysis extension (PLS-DA) are <strong>supervised</strong> multivariate statistical techniques. That is, PLS knows about the Y variable (type of recipe) and instead of making a line through the spread in that cloud of points, PLS draws a line that explains the <em>difference</em> between cupcakes and muffins. This <strong>actually</strong> answers the question “are muffins and cupcakes different?” and tells you which ingredients are most responsible for that difference.</p>
 <p>To date, supervised analyses like PLS are uncommon in ecology, even though this may often be the kind of question ecologists want to answer. Additionally, PLS is built to handle multicollinearity, the curse of dimensionality, and missing values, which makes it an excellent tool for analyzing ecological data!</p>
 <div class="figure"><span id="fig:unnamed-chunk-4"></span>
-<img src="/img/plsda.png" alt="Conceptual diagram of PLS-DA"  />
+<img src="plsda.png" alt="Conceptual diagram of PLS-DA" width="449" />
 <p class="caption">
 Figure 3: Conceptual diagram of PLS-DA
 </p>
@@ -65,28 +64,26 @@ nofrosting &lt;-
   mutate(type = fct_relabel(type, tools::toTitleCase))
 nofrosting</code></pre>
 <pre><code>## # A tibble: 30 x 42
-##    type  recipe_id agave `baking powder` `baking soda`  bran  butter
-##    &lt;fct&gt; &lt;chr&gt;     &lt;dbl&gt;           &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
-##  1 Cupc… 145206        0        0.00174       0.000868     0 0      
-##  2 Cupc… 240140        0        0.000868      0.000694     0 0.0167 
-##  3 Cupc… 161019        0        0.000868      0.00174      0 0      
-##  4 Muff… 16945         0        0             0            0 0.0741 
-##  5 Muff… 228562        0        0.00116       0.00231      0 0.00694
-##  6 Cupc… 215375        0        0.00130       0.000651     0 0      
-##  7 Cupc… 242474        0        0.00208       0            0 0      
-##  8 Cupc… 233538        0        0.00312       0.000521     0 0.05   
-##  9 Cupc… 155534        0        0.00231       0.000579     0 0      
-## 10 Muff… 6753          0        0.00694       0            0 0      
-## # … with 20 more rows, and 35 more variables: buttermilk &lt;dbl&gt;,
-## #   cheese &lt;dbl&gt;, chocolate &lt;dbl&gt;, cornmeal &lt;dbl&gt;, cream &lt;dbl&gt;, `cream
-## #   cheese` &lt;dbl&gt;, eggs &lt;dbl&gt;, flour &lt;dbl&gt;, frosting &lt;dbl&gt;, fruit &lt;dbl&gt;,
-## #   `fruit juice` &lt;dbl&gt;, honey &lt;dbl&gt;, `low-cal sweetener` &lt;dbl&gt;,
-## #   margarine &lt;dbl&gt;, mayonnaise &lt;dbl&gt;, milk &lt;dbl&gt;, molasses &lt;dbl&gt;,
-## #   nut &lt;dbl&gt;, oats &lt;dbl&gt;, oil &lt;dbl&gt;, other &lt;dbl&gt;, salt &lt;dbl&gt;,
+##    type  recipe_id agave `baking powder` `baking soda`  bran  butter buttermilk
+##    &lt;fct&gt; &lt;chr&gt;     &lt;dbl&gt;           &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt;
+##  1 Cupc… 145206        0        0.00174       0.000868     0 0           0     
+##  2 Cupc… 240140        0        0.000868      0.000694     0 0.0167      0     
+##  3 Cupc… 161019        0        0.000868      0.00174      0 0           0.0417
+##  4 Muff… 16945         0        0             0            0 0.0741      0     
+##  5 Muff… 228562        0        0.00116       0.00231      0 0.00694     0     
+##  6 Cupc… 215375        0        0.00130       0.000651     0 0           0     
+##  7 Cupc… 242474        0        0.00208       0            0 0           0     
+##  8 Cupc… 233538        0        0.00312       0.000521     0 0.05        0     
+##  9 Cupc… 155534        0        0.00231       0.000579     0 0           0     
+## 10 Muff… 6753          0        0.00694       0            0 0           0     
+## # … with 20 more rows, and 34 more variables: cheese &lt;dbl&gt;, chocolate &lt;dbl&gt;,
+## #   cornmeal &lt;dbl&gt;, cream &lt;dbl&gt;, `cream cheese` &lt;dbl&gt;, eggs &lt;dbl&gt;, flour &lt;dbl&gt;,
+## #   frosting &lt;dbl&gt;, fruit &lt;dbl&gt;, `fruit juice` &lt;dbl&gt;, honey &lt;dbl&gt;, `low-cal
+## #   sweetener` &lt;dbl&gt;, margarine &lt;dbl&gt;, mayonnaise &lt;dbl&gt;, milk &lt;dbl&gt;,
+## #   molasses &lt;dbl&gt;, nut &lt;dbl&gt;, oats &lt;dbl&gt;, oil &lt;dbl&gt;, other &lt;dbl&gt;, salt &lt;dbl&gt;,
 ## #   shortening &lt;dbl&gt;, `sour cream` &lt;dbl&gt;, spice &lt;dbl&gt;, starch &lt;dbl&gt;,
-## #   sugar &lt;dbl&gt;, syrup &lt;dbl&gt;, unitless &lt;dbl&gt;, vanilla &lt;dbl&gt;,
-## #   vegetable &lt;dbl&gt;, vinegar &lt;dbl&gt;, water &lt;dbl&gt;, `wheat germ` &lt;dbl&gt;,
-## #   yogurt &lt;dbl&gt;</code></pre>
+## #   sugar &lt;dbl&gt;, syrup &lt;dbl&gt;, unitless &lt;dbl&gt;, vanilla &lt;dbl&gt;, vegetable &lt;dbl&gt;,
+## #   vinegar &lt;dbl&gt;, water &lt;dbl&gt;, `wheat germ` &lt;dbl&gt;, yogurt &lt;dbl&gt;</code></pre>
 <p>I’ll be using the <code>ropls</code> package to do both PCA and PLS-DA. See the documentation for that package for more info on how to use it.</p>
 <pre class="r"><code>library(ropls)</code></pre>
 </div>

@@ -1,0 +1,129 @@
+---
+title: Python is Weird (an unabashedly biased intro to Python for R users)
+author: Eric R. Scott
+date: '2018-05-03'
+slug: python-is-weird
+categories:
+  - Data Science
+tags:
+  - Python
+  - R
+draft: false
+image:
+  caption: ""
+  focal_point: ""
+---
+
+
+
+<p>Last semester I took a class that used Python. It was my first time really seriously using any programing language other than R. The students were about half engineers and half biologists. The vast majority of the biologists knew R to varying degrees, but had no experience with Python, and the engineers seemed to generally have some experience with Python, or at least with languages more similar to it than R. I wish that the instructor could have taught every Python lecture like “Ok, today we’re going to learn the Python equivalent of doing ____ in R”, but of course that wouldn’t be fair to about half the students.</p>
+<p>So for anyone else making the leap from R to Python, here are three things that are going to feel really weird about Python.</p>
+<div id="indexing-is-not-intuitive-in-python" class="section level1">
+<h1>1. Indexing is not intuitive in Python</h1>
+<p>Let me just show you first and see if you can figure out what is going on:</p>
+<p><em>R Code:</em></p>
+<pre class="r"><code># R
+x = c(10, 20, 30, 40, 50)
+x[1]
+x[1:3]
+x[4:5]</code></pre>
+<pre><code>## [1] 10
+## [1] 10 20 30
+## [1] 40 50</code></pre>
+<p>Cool, cool.</p>
+<p><em>Equivalent in Python:</em></p>
+<pre class="python"><code># Python
+x = [10, 20, 30, 40, 50]
+print(x[1])</code></pre>
+<pre><code>## 20</code></pre>
+<pre class="python"><code>print(x[0])</code></pre>
+<pre><code>## 10</code></pre>
+<pre class="python"><code>print(x[3:4])</code></pre>
+<pre><code>## [40]</code></pre>
+<pre class="python"><code>print(x[3:5])</code></pre>
+<pre><code>## [40, 50]</code></pre>
+<p>Wait, what? Two things are really weird about this. First, the first position in the vector is not position 1, it is position 0. Second, <code>x[3:4]</code> returns only a single number. Why?! Because in Python, the second number in the index is not inclusive, so if you want to get the 4th and 5th values of <code>x</code> (index positions 3 and 4 in Python world), then you have to use <code>x[3:5]</code> <strong>even though there is NO POSITION 5</strong>. Terrible.</p>
+<p><em>Weird thing 1.1: Python is much more geared toward writing programs than R. That means you can’t really run python code one line at a time like R and you have to explicitly <code>print()</code> things that you want to be output to the screen.</em></p>
+</div>
+<div id="you-need-to-load-a-package-just-to-do-vector-math" class="section level1">
+<h1>2. You need to load a package just to do vector math</h1>
+<p>R is built for doing math and statistics, so vectors and matrices are built in and you can do math on them!</p>
+<p><em>R Code:</em></p>
+<pre class="r"><code># R
+x = c(1, 2, 3)
+x + 10
+x * 2
+y = c(5, 6, 7)
+x + y
+#Yay vector arithmetic!</code></pre>
+<pre><code>## [1] 11 12 13
+## [1] 2 4 6
+## [1]  6  8 10</code></pre>
+<p>Python is <strong>not</strong> built with math and statistics in mind, and this doesn’t work without using a package.</p>
+<p><em>Equivalent in Python:</em></p>
+<pre class="python"><code># Python
+x = [1, 2, 3]
+print(x + [10]) </code></pre>
+<pre><code>## [1, 2, 3, 10]</code></pre>
+<pre class="python"><code>print(x*3) </code></pre>
+<pre><code>## [1, 2, 3, 1, 2, 3, 1, 2, 3]</code></pre>
+<pre class="python"><code>y = [5, 6, 7]
+print(x + y) </code></pre>
+<pre><code>## [1, 2, 3, 5, 6, 7]</code></pre>
+<p>Clearly <code>+</code> is doing something different in base Python—it’s concatenating <code>x</code> and <code>10</code>. Similarly, <code>*</code> is not multiplying, but concatenating three <code>x</code>s in a row. This is completely ridiculous behavior for numbers, but when you’re working with strings, it’s actually pretty freakin’ great.</p>
+<pre class="python"><code># Python
+print((&quot;Yay &quot;+&quot;Python! &quot;) * 5)</code></pre>
+<pre><code>## Yay Python! Yay Python! Yay Python! Yay Python! Yay Python!</code></pre>
+<p>If you want numerical vectors to work like they should, you have to use a special kind of vector called a <strong>numpy array</strong>. Numpy is a package for Python that provides a bunch of functions that work on numbers.</p>
+<pre class="python"><code># Python
+import numpy as np
+x = np.array([1, 2, 3])
+print(x + 10)</code></pre>
+<pre><code>## [11 12 13]</code></pre>
+<pre class="python"><code>print(x * 2) </code></pre>
+<pre><code>## [2 4 6]</code></pre>
+<pre class="python"><code>y = np.array([5, 6, 7])
+print(x + y)</code></pre>
+<pre><code>## [ 6  8 10]</code></pre>
+<p>If you do math to numpy arrays, you get what you’d expect as an R user.</p>
+<p><em>Wierd thing 2.1: note that the <code>packagename.function()</code> form is equivalent to <code>packagename::function()</code> in R, but unlike R, it is always required. That is, as far as I know, there is nothing you can do to make <code>array([1,2,3])</code> work without the preceding <code>np.</code></em></p>
+</div>
+<div id="default-assignment-behavior-is-aliasing" class="section level1">
+<h1>3. Default assignment behavior is aliasing</h1>
+<p>I’m still trying to wrap my mind around this one, so rather than trying to explain it, let me show you an example first:</p>
+<p><em>R Code:</em></p>
+<pre class="r"><code># R
+a1 = c(1,2,3)
+a2 = a1
+a2[1] = 100
+a1
+a2</code></pre>
+<pre><code>## [1] 1 2 3
+## [1] 100   2   3</code></pre>
+<p><code>a1</code> is, of course, unchanged by changing a value in <code>a2</code>. Let’s see if that’s true in Python.</p>
+<p><em>Equivalent in Python:</em></p>
+<pre class="python"><code># Python
+import numpy as np
+a1 = np.array([1,2,3])
+a2 = a1
+a2[1] = 100
+print(a1)</code></pre>
+<pre><code>## [  1 100   3]</code></pre>
+<pre class="python"><code>print(a2)</code></pre>
+<pre><code>## [  1 100   3]</code></pre>
+<p>Changing a value in <code>a2</code> <em>changes</em> the same value in <code>a1</code>! In this case, <code>a2</code> is an <em>alias</em> of <code>a1</code>, not a copy. This only happens when you do <code>object1 = object2</code> and not when you do something to <code>object2</code> as you’re assigning it. Here’s another example:</p>
+<pre class="python"><code># Python
+import numpy as np
+a1 = np.array([1,2,3])
+a2 = a1 + 2
+a2[1] = 100
+print(a1)</code></pre>
+<pre><code>## [1 2 3]</code></pre>
+<pre class="python"><code>print(a2)</code></pre>
+<pre><code>## [  3 100   5]</code></pre>
+<p>Now <code>a2</code> is a separate object from <code>a1</code> instead of just an alias. If you want to make an <em>exact</em> copy, you have to do that explicitly with <code>a2 = np.copy(a1)</code> or <code>a2 = a1[:]</code></p>
+</div>
+<div id="try-python" class="section level1">
+<h1>Try Python!</h1>
+<p>As many people in the data science world have pointed out, it’s not R vs. Python, it’s <a href="https://www.datasciencecentral.com/profiles/blogs/r-vs-python-r-and-python-and-something-else">R <em>and</em> Python</a>. From my limited experience, the benefits of Python over R I’ve are that it seems to be faster, defining classes and functions seems less painful, and it’s great at working with strings out of the box. I don’t really plan on working in Python more unless I have to, but knowing a bit of the language will be useful for talking shop with people who use it!</p>
+</div>

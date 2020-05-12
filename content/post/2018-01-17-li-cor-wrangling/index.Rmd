@@ -17,9 +17,9 @@ tags:
 projects: ["bace-tea"]
 draft: false
 
-header:
-  image: "headers/licor-header.png"
-  
+image:
+  caption: ""
+  focal_point: ""
 ---
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(knitr)
@@ -31,7 +31,7 @@ The [LI-6400XT](https://www.licor.com/env/products/photosynthesis/LI-6400XT/) is
 When the data are exported, you get a series of .xls files and a plain text file.  Both of these have some problems that you'll have to deal with if you want to read the data into R and use it for statistical analysis or generating reports.
 
 ```{r excel, echo=FALSE, fig.cap="Excel nightmare or text nightmare? Pick your poison.", out.width="90%"}
-include_graphics("/img/licor_excel.png")
+include_graphics("licor_excel.png")
 ```
 
 Both file types create some problems for easily getting the data into R:
@@ -86,11 +86,9 @@ library(tidyverse)
 library(stringr)
 library(here)
 ```
-```{r include=FALSE}
-text.raw <- read_file(here("sitedata", "licor.txt"))
-```
 
-```{r eval=FALSE}
+
+```{r}
 text.raw <- read_file("licor.txt")
 ```
 
