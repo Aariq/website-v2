@@ -28,6 +28,7 @@ wolves <- read_csv("NRMwolves.csv") %>%
 head(wolves)
 ```
 
+
 ```{r echo=FALSE}
 wolfplot <-
   ggplot(wolves, aes(x = year, y = num.wolves)) +
