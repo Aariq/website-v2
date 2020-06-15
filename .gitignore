@@ -10,6 +10,7 @@ public/
 .Rhistory
 .RData
 .Ruserdata
+.Rprofile
 
 # Other
 .DS_Store
