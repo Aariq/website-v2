@@ -52,11 +52,11 @@ hero_media = ""
 
 +++
 
-Ph.D. Candidate, Tufts University
+Postdoctoral Researcher, University of Florida
 <br>
-<small><a id="Orians Lab" href="http://ase.tufts.edu/biology/labs/orians/">Orians Lab</a></small>
+<small><a id="Bruna Lab" href="http://brunalab.org/">Bruna Lab</a></small>
 <br>
-<small><a id="Tea Climate" href="http://www.teaclimate.org/">Tea & Climate Change Collaborative</a></small>
+<br>
 <br>
 <br>
 <br>

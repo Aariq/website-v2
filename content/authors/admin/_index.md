@@ -10,22 +10,22 @@ authors:
 superuser: true
 
 # Role/position
-role: PhD in Biology
+role: Postdoctoral Researcher
 
 # Organizations/Affiliations
 organizations:
-- name: Tufts University
-  url: ""
+- name: University of Florida, Wildlife Ecology & Conservation
+  url: "https://wec.ifas.ufl.edu/"
 
 # Short bio (displayed in user profile at end of posts)
-bio: I recently recieved my PhD in Biology from Tufts University with an emphasis on chemical ecology.  I'm interested in the mechanisms of plant defense and their consequences for natural and agricultural ecosystems.  My Ph.D. focus was on the effects of climate change and insect herbivory on the quality (flavor and health benefits) of tea (*Camellia sinensis*)
+bio: I'm a postdoctoral researcher in [Emilio Bruna's lab](http://brunalab.org/) at University of Florida working on the effects of drought and habitat fragmentation on a tropical plant. I'm interested in the mechanisms of plant responses to stress and their consequences for natural and agricultural ecosystems.
 
 interests:
 - Chemical ecology
 - Eco-metabolomics
-- Plant volatile sampling
+- Plant demography
 - Statistics and programming in R
-- Tea (as a hobby and a study system)
+- Tea
 
 education:
   courses:
@@ -46,7 +46,7 @@ education:
 social:
 - icon: envelope
   icon_pack: fas
-  link: 'mailto:eric.scott@tufts.edu'  # For a link to contact form use '#contact'.
+  link: 'mailto:scottericr@gmail.com'  # For a link to contact form use '#contact'.
 - icon: twitter
   icon_pack: fab
   link: https://twitter.com/leafyericscott
@@ -69,7 +69,7 @@ social:
 #   link: files/cv.pdf
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
-email: "eric.scott@tufts.edu"
+email: "scottericr@gmail.com"
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
@@ -79,4 +79,4 @@ email: "eric.scott@tufts.edu"
 user_groups: []
 ---
 
-I recently recieved my PhD in Biology from Tufts University with an emphasis on chemical ecology. I'm currently looking for a postdoc position. I'm interested in the mechanisms of plant defense and their consequences for natural and agricultural ecosystems.  My dissertation focus was on the effects of climate change and insect herbivory on the quality (flavor and health benefits) of tea (*Camellia sinensis*).
+I'm a postdoctoral researcher in [Emilio Bruna's lab](http://brunalab.org/) at University of Florida working on the effects of drought and habitat fragmentation on a tropical plant.  I'm interested in the mechanisms of plant responses to stress and their consequences for natural and agricultural ecosystems.  [My Ph.D. focus](http://teaclimate.org) was on the effects of climate change and insect herbivory on the quality (flavor and health benefits) of tea (*Camellia sinensis*).
