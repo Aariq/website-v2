@@ -19,7 +19,7 @@ As ecology datasets become increasingly larger due to citizen science, high-thro
 Partial least squares regression (PLS, alternately 'projection to latent structures') is a supervised multivariate statistical technique. PLS, a supervised technique, attempts to explain *covariation* with a explanatory variable, and it's built with more variables than samples in mind. Because of that, it's been warmly adopted by analytic chemists and chemical ecologists, but I believe it has applications to other fields of ecology.
 
 ```{r echo=FALSE, out.width="60%", fig.cap="A schematic of PCA (A) compared to PLS (B).  In a PCA score plot (right), the x axis is a combination of variables (in this example, the three metabolites) that explains the most variation in the data, regardless of group membership.  PLS, on the other-hand, attempts to explain the co-variation with an explanatory variable ('Treatment' in this example)."}
-knitr::include_graphics("/img/PLSvsPCA.png")
+knitr::include_graphics("featured.png")
 ```
 
 Unfortunately, researchers used to looking for visual separation in PCA score plots may be prone to misinterpreting PLS score plots because even when separation is not statistically significant, they may still show visual separation.

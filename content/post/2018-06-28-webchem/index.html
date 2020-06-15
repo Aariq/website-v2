@@ -36,7 +36,7 @@ Figure 1: An example table including literature retention indices from <a href="
 <p>Load the package and take a look at the help file. You’ll see that we need to choose what type of retention index to scrape, what polarity of column, and what kind of teperature program. If you browse one of the <a href="https://webbook.nist.gov/cgi/cbook.cgi?ID=C78706&amp;Units=SI&amp;Mask=2000#Gas-Chrom">NIST sites for a compound</a>, this will make more sense.</p>
 <pre class="r"><code>library(webchem)
 ?nist_ri</code></pre>
-<p>Let’s get Van Den Dool &amp; Kratz (AKA “linear”) retention indeces for non-polar columns using a temperature ramp. This might take a while, depending on your internet connection and how many CAS numbers you request data for. If a certain type of retention index doesn’t exist for a compound, the function will return <code>NA</code> for all columns but the CAS number.</p>
+<p>Let’s get Van Den Dool &amp; Kratz (AKA “linear”) retention indexes for non-polar columns using a temperature ramp. This might take a while, depending on your internet connection and how many CAS numbers you request data for. If a certain type of retention index doesn’t exist for a compound, the function will return <code>NA</code> for all columns but the CAS number.</p>
 <pre class="r"><code>RIs &lt;-
   nist_ri(
     query = CASs,
@@ -57,9 +57,17 @@ head(RIs)</code></pre>
 ## 6 83-3…  1399 Capi… DB-5…     30 &lt;NA&gt;  &lt;NA&gt;          0.25      0.25         40
 ## # … with 6 more variables: temp_end &lt;dbl&gt;, temp_rate &lt;dbl&gt;, hold_start &lt;dbl&gt;,
 ## #   hold_end &lt;dbl&gt;, reference &lt;chr&gt;, comment &lt;chr&gt;</code></pre>
-<p>You can see there are multiple retention indices (<code>RI</code>) for each CAS number. Let’s filter this down some more using some functions from <code>dplyr</code> and <code>stringr</code>.</p>
-<pre class="r"><code>library(dplyr)
-library(stringr)
+<p>You can see there are multiple retention indexes (<code>RI</code>) for each CAS number. Let’s filter this down some more using some functions from <code>dplyr</code> and <code>stringr</code>.</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(stringr)
 RIs_filtered &lt;-
   RIs %&gt;%
   filter(gas == &quot;Helium&quot;,
@@ -84,10 +92,10 @@ head(RIs_filtered)</code></pre>
 <pre class="r"><code>RIs_filtered %&gt;% 
   group_by(CAS) %&gt;% 
   summarise(mean_RI = mean(RI))</code></pre>
-<pre><code>## `summarise()` ungroup (override with `.groups` argument)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <pre><code>## # A tibble: 4 x 2
 ##   CAS        mean_RI
-## * &lt;chr&gt;        &lt;dbl&gt;
+##   &lt;chr&gt;        &lt;dbl&gt;
 ## 1 119-36-8     1193.
 ## 2 123-35-3      990.
 ## 3 19700-21-1   1430 

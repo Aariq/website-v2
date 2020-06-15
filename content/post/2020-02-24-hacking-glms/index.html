@@ -21,9 +21,8 @@ image:
 <div id="data" class="section level1">
 <h1>Data</h1>
 <p>I’ll be using data on the Northern Rocky Mountain grey wolf population. You can read more about the history of these wolves <a href="https://www.justice.gov/enrd/northern-rocky-mountain-gray-wolves">here</a>.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Warning: package &#39;purrr&#39; was built under R version 3.6.2</code></pre>
-<pre class="r"><code>wolves &lt;- read_csv(&quot;NRMwolves.csv&quot;) %&gt;%
+<pre class="r"><code>library(tidyverse)
+wolves &lt;- read_csv(&quot;NRMwolves.csv&quot;) %&gt;%
   mutate(year_post = year - 1982) 
 head(wolves)</code></pre>
 <pre><code>## # A tibble: 6 x 8
