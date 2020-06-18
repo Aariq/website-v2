@@ -1,6 +1,7 @@
 ---
 title: Can fermentation rescue low-quality monsoon season tea?
 date: '2017-12-13'
+expiryDate: '2020-05-15'
 summary: Is microbial ripening a way for tea farmers to improve low-quality monsoon season harvests?
 slug: puer
 image:
