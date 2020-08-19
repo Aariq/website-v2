@@ -1,0 +1,110 @@
+---
+title: Three ways to plot logistic regressions
+author: Eric R. Scott
+date: '2020-08-19'
+slug: plot-logistic-regressions
+categories:
+  - Blog
+  - Data Science
+tags:
+  - R
+  - data visualization
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-08-19T12:01:43-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p>If your data is just 1’s and 0’s, it can be difficult to visualize alongside a best-fit line from a logistic regression.</p>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Even with transparency, the overplotted data points just turn into a smear on the top and bottom of your plot, adding little information. Here are three ways to get more information out of those points and produce more informative plots. But first, a quick introduction to the data.</p>
+<div id="the-data" class="section level2">
+<h2>The data</h2>
+<p>I simulated some data on survival as a function of size. Survival is binary (1 = survived, 0 = died).</p>
+<pre class="r"><code>head(df)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##    size  surv
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  4.78     0
+## 2  4.40     1
+## 3  5.02     1
+## 4  5.32     1
+## 5  4.61     0
+## 6  4.81     1</code></pre>
+<pre class="r"><code>nrow(df)</code></pre>
+<pre><code>## [1] 1000</code></pre>
+<p>We can fit a logistic regression…</p>
+<pre class="r"><code>m &lt;- glm(surv ~ size, family = binomial, data = df)</code></pre>
+<p>…and extract fitted values using <code>broom::augment()</code></p>
+<pre class="r"><code>plot_df &lt;- augment(m, type.predict = &quot;response&quot;)
+head(plot_df)</code></pre>
+<pre><code>## # A tibble: 6 x 8
+##    surv  size .fitted .resid .std.resid    .hat .sigma  .cooksd
+##   &lt;int&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;
+## 1     0  4.78   0.746 -1.66      -1.66  0.00125  0.970 0.00184 
+## 2     1  4.40   0.601  1.01       1.01  0.00287  0.971 0.000958
+## 3     1  5.02   0.819  0.633      0.633 0.00122  0.972 0.000136
+## 4     1  5.32   0.884  0.496      0.496 0.00160  0.972 0.000105
+## 5     0  4.61   0.685 -1.52      -1.52  0.00169  0.971 0.00184 
+## 6     1  4.81   0.756  0.748      0.748 0.00122  0.971 0.000197</code></pre>
+<p>These are the data I used for the plot above with the points corresponding to <code>surv</code> and the best-fit line corresponding to <code>.fitted</code></p>
+<pre class="r"><code>base &lt;-
+  ggplot(plotdf, aes(x = size)) +
+  geom_line(aes(y = .fitted), color = &quot;blue&quot;) +
+  labs(x = &quot;Size&quot;, y = &quot;Survival&quot;)
+
+base + geom_point(aes(y = surv), alpha = 0.2)</code></pre>
+</div>
+<div id="rug-plot" class="section level2">
+<h2>1. Rug plot</h2>
+<p>Turning those points into a “rug” is a common way of dealing with overplotting in logistic regression plots. <code>ggplot2</code> provides <code>geom_rug()</code>, but getting that rug to correspond to dead plants on the bottom and live plants on the top requires a little data manipulation. First, we’ll create separate columns for dead and alive plants where the values of size only if the plant is dead or alive, respectively, and otherwise <code>NA</code>.</p>
+<pre class="r"><code>plot_df &lt;-
+  plot_df %&gt;% 
+  mutate(survived = ifelse(surv == 1, size, NA),
+         died     = ifelse(surv == 0, size, NA))</code></pre>
+<p>Then, we can plot these as separate layers.</p>
+<pre class="r"><code>base &lt;-
+  ggplot(plot_df, aes(x = size)) +
+  geom_line(aes(y = .fitted), color = &quot;blue&quot;) +
+  labs(x = &quot;Size&quot;, y = &quot;Survival&quot;)
+
+base + 
+  geom_rug(aes(x = died), sides = &quot;b&quot;, alpha = 0.2) +
+  geom_rug(aes(x = survived), sides = &quot;t&quot;, alpha = 0.2)</code></pre>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Honestly, this is not a huge improvment. The overplotting is less of an issue and you can start to see the density of points a bit better, but it’s still not great.</p>
+</div>
+<div id="binned-points" class="section level2">
+<h2>2. Binned points</h2>
+<p>I discovered this plot in <a href="https://www.springer.com/gp/book/9783319288918">Data-driven Modeling of Structured Populations</a> by Ellner, Childs, and Rees. Their plot used base R graphics, but I’ll use <code>ggplot2</code> and <code>stat_summary_bin()</code> to get a mean survival value for binned size classes and plot those as points.</p>
+<pre class="r"><code>base + stat_summary_bin(geom = &quot;point&quot;, fun = mean, aes(y = surv))</code></pre>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>I think this is fabulous! It definitely needs an explanation in a figure caption though, because what those points represent is not immediately obvious. Also, how close the points fit to the line has more to do with bin size than with model fit, so this one might be better for inspecting patterns than for evaluating fit.</p>
+<pre class="r"><code>base + stat_summary_bin(geom = &quot;point&quot;, fun = mean, aes(y = surv)) + labs(title = &quot;bins = 30&quot;) |
+base + stat_summary_bin(geom = &quot;point&quot;, fun = mean, aes(y = surv), bins = 60) + labs(title = &quot;bins = 60&quot;)</code></pre>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="histograms" class="section level2">
+<h2>3. Histograms</h2>
+<p>This option takes the ideas of binning values from #2 and showing distributions in the margins from #1 and combines them. I discovered this in a <a href="http://brunalab.org/wp-content/uploads/2012/12/Bruna_etal_2014_Ecology.pdf">paper</a> from my postdoc adviser, Emilio Bruna.</p>
+<p>A function to make this third type of plot with base R graphics is available in the <code>popbio</code> package.</p>
+<pre class="r"><code>library(popbio)</code></pre>
+<pre><code>## Warning: package &#39;popbio&#39; was built under R version 4.0.2</code></pre>
+<pre class="r"><code>logi.hist.plot(size, surv, boxp = FALSE, type = &quot;hist&quot;, col = &quot;gray&quot;)</code></pre>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Re-creating this with ggplot2 requires some hacks, and I’m still not all the way there.</p>
+<pre class="r"><code>base +
+  geom_histogram(aes(x = died, y = stat(count)/1000), bins = 30, na.rm = TRUE) +
+  geom_histogram(aes(x = survived, y = -1*stat(count/1000)), bins = 30, na.rm = TRUE, position = position_nudge(y = 1))</code></pre>
+<p><img src="/post/2020-08-19-plot-logistic-regressions/index_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>There are at least two “hacks” going on here. First, I’m using <code>stat()</code> to extract the bar heights automatically calculated by <code>stat_bin()</code>/<code>geom_histogram()</code> to scale the histogram down. Second, to get the histogram for survivors to be at the top I need to flip it upside down (by multiplying by -1) and move it to the top of the plot with <code>position_nudge()</code>. The downside to this plot is that there are technically <strong><em>three</em></strong> y-axes—the survival probability and the number or proportion in each size class for dead and alive individuals (with 0 at the bottom and top, respectively). You can <a href="https://www.r-graph-gallery.com/line-chart-dual-Y-axis-ggplot2.html">add a second y-axis to a ggplot</a>, but I’m not sure about a third y-axis.</p>
+<p>If you know of another cool way to visualize logistic regressions, or know of some package that does all this for you, please let me know in the comments!</p>
+</div>
