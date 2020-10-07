@@ -57,9 +57,9 @@ subtitle = ""
 
 - [Oolong: more than mid-oxidized](http://www.teageek.net/blog/2018/03/oolong-mid-oxidized/)
 - [Oriental Beauty and Other Bug-Bitten Teas: Fact or Fiction?](https://worldoftea.org/oriental-beauty-bug-bitten-teas/)
-- [The science and nomenclature of tea processing. Part 1: Enzymatic browning](http://www.teageek.net/blog/2017/02/tea-terminology-part-1/) [[French translation](https://brutdethe.oisiflorus.com/ressources/brunissement-enzymatique-eric-scott)]
-- [The science and nomenclature of tea processing. Part 2: Microbial ripening](http://www.teageek.net/blog/2017/02/science-nomenclature-tea-processing-part-2-microbial-ripening/) [[French translation](https://brutdethe.oisiflorus.com/ressources/maturation-microbienne-eric-scott)]
-
+- [The science and nomenclature of tea processing. Part 1: Enzymatic browning](http://www.teageek.net/blog/2017/02/tea-terminology-part-1/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/brunissement-enzymatique-eric-scott))
+- [The science and nomenclature of tea processing. Part 2: Microbial ripening](http://www.teageek.net/blog/2017/02/science-nomenclature-tea-processing-part-2-microbial-ripening/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/maturation-microbienne-eric-scott))
+- [Bug-bitten teas: why are leafhoppers only sometimes a good thing?](http://www.teageek.net/blog/2016/02/bug-bitten-teas-why-are-leafhoppers-only-sometimes-a-good-thing/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/cicadellidae-eric-scott))
 ## Press
 
 - Drew L. 2019. [The Growth of Tea](https://www.nature.com/articles/d41586-019-00395-4). *Nature Outlook*
