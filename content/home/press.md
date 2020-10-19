@@ -45,11 +45,14 @@ subtitle = ""
  # CSS class.
  css_class = ""
 +++
-## Social media:
+
+## Social Media:
+
 - [#TeaScienceTuesday](https://www.instagram.com/explore/tags/teasciencetuesday) on Instagram
 
-## Podcast appearances:
+## Podcast and Radio Appearances:
 
+- [Frequenza Della Scienza](https://radiostudent.si/znanost/frequenza-della-scienza/skodelica-%C4%8Daja), a science program on Radio Študent, an independent Slovenian radio station.
 - [Talking Tea](https://talkingtea.libsyn.com/chemistry-climate-change-bugs-tea)
 - [PhDrinking podcast](https://soundcloud.com/phdrinking/tea-totaling)
 
@@ -60,6 +63,7 @@ subtitle = ""
 - [The science and nomenclature of tea processing. Part 1: Enzymatic browning](http://www.teageek.net/blog/2017/02/tea-terminology-part-1/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/brunissement-enzymatique-eric-scott))
 - [The science and nomenclature of tea processing. Part 2: Microbial ripening](http://www.teageek.net/blog/2017/02/science-nomenclature-tea-processing-part-2-microbial-ripening/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/maturation-microbienne-eric-scott))
 - [Bug-bitten teas: why are leafhoppers only sometimes a good thing?](http://www.teageek.net/blog/2016/02/bug-bitten-teas-why-are-leafhoppers-only-sometimes-a-good-thing/) (in [French](https://www.xn--brutdeth-i1a.fr/ressources/cicadellidae-eric-scott))
+
 ## Press
 
 - Drew L. 2019. [The Growth of Tea](https://www.nature.com/articles/d41586-019-00395-4). *Nature Outlook*
