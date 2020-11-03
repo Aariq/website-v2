@@ -1,0 +1,107 @@
+---
+title: Treat your treatments as continuous
+author: Eric R. Scott
+date: '2020-11-02'
+slug: stop-binning
+categories:
+  - Blog
+tags:
+  - R
+  - quadratic regression
+  - modeling
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-08-19T12:01:43-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: no
+math: yes
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Taking potentially continuous treatments, binning it into categories, and doing ANOVA is results in reduced statistical power and complicated interpretation. Yet, as a graduate student, I was advised to bin continuous treatment variables into categories multiple times by different people. Why? I suspect it’s because ANOVA is what ecologists are most familiar with, and the alternative, a quadratic regression, <em>sounds</em> complicated. A regression also doesn’t let you draw a bar plot with letters over the bars that ecologists really seem to love. Hopefully this example with simulated data will convince you to consider regression over ANOVA<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> when your treatment can be considered continuous (and you suspect a continuous relationship with the response).</p>
+<p>I’ll work through an example with simulated data to show you what I mean. Let’s say you’ve applied fertilizer at 3 different levels to 15 replicate corn fields (5 fields per fertilizer treatment). The treatments are 100, 200, and 300 kg N / ha. We measure yield and standardize it to percent of maximum yield.</p>
+<p>I’m going to analyze this both as an ANOVA type design, treating fertilizer as categorical, and as a regression. For the sake of demonstration, I’ll use post-hoc power analysis to get statistical power for each test (something you <a href="https://www.r-bloggers.com/2020/01/playing-with-post-hoc-power-with-r-why-we-shouldnt-do-it/">probably shouldn’t do</a> in practice because post-hoc power is fixed once you compute a p-value).</p>
+<div id="anova" class="section level1">
+<h1>ANOVA</h1>
+<p>Here’s the ANOVA model in R:</p>
+<pre class="r"><code>m &lt;- aov(yield ~ fert_factor, data = df)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: yield
+##             Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## fert_factor  2 333.19 166.595  5.0086 0.02621 *
+## Residuals   12 399.14  33.262                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>According to the ANOVA, there is a significant effect of fertilizer on yield (p = 0.026)</p>
+<p>Our results look like this:</p>
+<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<p>Our sample size, <span class="math inline">\(n\)</span>, is 5. Statistical power, <span class="math inline">\(\beta\)</span>, is 0.39.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+</div>
+<div id="regression" class="section level1">
+<h1>Regression</h1>
+<p>But why not treat those concentrations as a continuous variable and instead fit a quadratic regression? A quadratic regression fits a line described by a quadratic function (a curve) through the relationship between fertilizer concentration and growth. Here’s what this model looks like:</p>
+<p><span class="math display">\[
+yield = \beta_0 + \beta_1fert +  \beta_2fert^2
+\]</span></p>
+<p>This method is flexible. The relationship could be concave, convex, or increasing with a varying slope. If the true relationship is linear, then <span class="math inline">\(\beta_2\)</span> will be zero, and we’ll be left with the equation for a line.</p>
+<p>There are two ways to write this model as R code. This first form is useful because the default behavior of <code>anova()</code> gives a single p-value for the effect of fertilizer.</p>
+<pre class="r"><code>m1a &lt;- lm(yield ~ poly(fert, 2, raw = TRUE), data = df)
+anova(m1a)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: yield
+##                           Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## poly(fert, 2, raw = TRUE)  2 333.19 166.595  5.0086 0.02621 *
+## Residuals                 12 399.14  33.262                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>This second form is useful because it tells you if the quadratic term is significant (if it’s not, you might try just fitting a straight line). <code>I()</code> means “literally multiply, don’t fit an interaction term”.</p>
+<pre class="r"><code>m1b &lt;- lm(yield ~ fert + I(fert * fert), data = df)
+anova(m1b)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: yield
+##                Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## fert            1 141.80 141.805  4.2633 0.06125 .
+## I(fert * fert)  1 191.39 191.385  5.7539 0.03360 *
+## Residuals      12 399.14  33.262                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Either way, there is still a significant effect of fertilizer on yield.</p>
+<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Now <span class="math inline">\(n = 15\)</span>, and our power, <span class="math inline">\(\beta\)</span>, has gone up to 0.8. The power is doubled compared to the ANOVA design because of the greater effective sample size in the regression model.</p>
+</div>
+<div id="better-yet-measure-the-treatment" class="section level1">
+<h1>Better yet, measure the treatment</h1>
+<p>But wait, there’s more! I haven’t told you something about the data I simulated. I generated data so that growth has a quadratic response to nitrogen concentration <strong>in the soil</strong>, but soil nitrogen isn’t perfectly correlated with the nitrogen applied. Your intended treatment is rarely what a plant is actually experiencing. So let’s say we can do even better than including the <em>intended</em> treatment as a continuous variable—let’s get the soil tested for nitrogen content and use <strong>that</strong> as an independent variable.</p>
+<pre class="r"><code>m2 &lt;- lm(yield ~ true + I(true * true), data = df)
+anova(m2)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: yield
+##                Df Sum Sq Mean Sq F value   Pr(&gt;F)   
+## true            1 219.48 219.479  10.186 0.007754 **
+## I(true * true)  1 254.28 254.278  11.801 0.004938 **
+## Residuals      12 258.57  21.548                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Now our power, <span class="math inline">\(\beta\)</span>, is 0.99. It’s probably very often worth it to try to measure whatever latent variable that mediates the effect of your treatment. In fact, that increased spread of your data is a <em>good thing</em> if you want to better describe the shape of the relationship between treatment and response.</p>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Well, technically <a href="https://lindeloev.github.io/tests-as-linear/#61_one-way_anova_and_kruskal-wallis">ANOVA <em>is</em> a regression</a><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Statistical power was estimated using the <code>pwr</code> package. Effect size was calculated using <a href="https://www.statmethods.net/stats/power.html">Cohen’s suggestions</a>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

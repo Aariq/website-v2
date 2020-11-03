@@ -1,0 +1,253 @@
+---
+title: Treat your treatments as continuous
+author: Eric R. Scott
+date: '2020-11-02'
+slug: stop-binning
+categories:
+  - Blog
+tags:
+  - R
+  - quadratic regression
+  - modeling
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-08-19T12:01:43-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: no
+math: yes
+---
+
+```{r include=FALSE}
+library(tidyverse)
+library(pwr)
+library(equatiomatic)
+library(Hmisc)
+library(broom)
+library(patchwork)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```
+
+
+```{r include=FALSE}
+#simulate data
+set.seed(987)
+#"true" relationship
+# searched google images for "fertilizer plant growth graph", estimated fake dataset, fit quadratic line, get coefs.
+
+# stochasticity--two levels
+# first, ACTUAL fertlizer ammount received by plant (i.e. soil nitrogen). Maybe a uniform distribution around intended fertlizer concentration?
+
+trt = rep(c(100, 200, 300), each = 5)
+true = rnorm(15, trt, 20)
+plot(trt, true)
+# second, error term for plant growth in response to ACTUAL fertilizer ammount.
+
+a = rnorm(15, 60, 3)
+b = rnorm(15, 0.35, 0.0018)
+c = rnorm(15, -0.001, 0.00009)
+
+resp = a + b*true + c*true^2
+plot(trt, resp)
+plot(true, resp)
+
+df <- tibble(fert = trt, true, yield = resp) %>% 
+  mutate(fert_factor = as.factor(fert))
+```
+
+
+Taking potentially continuous treatments, binning it into categories, and doing ANOVA is results in reduced statistical power and complicated interpretation. Yet, as a graduate student, I was advised to bin continuous treatment variables into categories multiple times by different people. Why? I suspect it's because ANOVA is what ecologists are most familiar with, and the alternative, a quadratic regression, *sounds* complicated. A regression also doesn't let you draw a bar plot with letters over the bars that ecologists really seem to love. Hopefully this example with simulated data will convince you to consider regression over ANOVA^[Well, technically [ANOVA *is* a regression](https://lindeloev.github.io/tests-as-linear/#61_one-way_anova_and_kruskal-wallis)] when your treatment can be considered continuous (and you suspect a continuous relationship with the response).
+
+I'll work through an example with simulated data to show you what I mean. Let's say you've applied fertilizer at 3 different levels to 15 replicate corn fields (5 fields per fertilizer treatment).  The treatments are 100, 200, and 300 kg N / ha. We measure yield and standardize it to percent of maximum yield.  
+
+I'm going to analyze this both as an ANOVA type design, treating fertilizer as categorical, and as a regression.  For the sake of demonstration, I'll use post-hoc power analysis to get statistical power for each test (something you [probably shouldn't do](https://www.r-bloggers.com/2020/01/playing-with-post-hoc-power-with-r-why-we-shouldnt-do-it/) in practice because post-hoc power is fixed once you compute a p-value).
+
+# ANOVA
+
+Here's the ANOVA model in R:
+
+```{r echo=TRUE}
+m <- aov(yield ~ fert_factor, data = df)
+```
+
+
+```{r}
+anova(m)
+```
+
+```{r include=FALSE}
+pval <- round(tidy(m)$p.value[1], 3)
+TukeyHSD(m)
+sig.lets <- c("ab", "a", "b")
+```
+
+According to the ANOVA, there is a significant effect of fertilizer on yield (p = `r pval`)
+
+Our results look like this:
+
+```{r echo=FALSE, warning=FALSE}
+p_anova <- 
+  ggplot(df, aes(x = fert_factor, y = resp)) +
+  stat_summary_bin(geom = "col", fun = mean) +
+  stat_summary_bin(geom = "pointrange", fun.data = mean_cl_normal) +
+  scale_y_continuous("% maximum yield", limits = c(0,100)) +
+  scale_x_discrete("Fertilizer (kg N / ha)") +
+  stat_summary_bin(geom = "text", fun = mean, vjust = -4, label = sig.lets) +
+  labs(caption = glue::glue("ANOVA, P = {pval}; letters indicate Tukey HSD"))
+p_anova
+```
+```{r}
+# effect size f
+mu <- mean(df$yield)
+f <- df %>%
+  group_by(fert_factor) %>% 
+  dplyr::summarize(mui = mean(yield),
+            sig2 = var(yield)) %>% 
+  mutate((mui - mu)^2,
+         pi = 5/15,
+         numerator = pi*(mui - mu)^2,
+         fi = numerator/sig2) %>% 
+  dplyr::summarize(f = sum(fi)) %>% 
+  pull(f)
+#power
+power_anova <-
+  pwr.anova.test(
+    k = 3,
+    n = 5,
+    f = f,
+    sig.level = 0.05
+  ) %>%
+  tidy() %>%
+  pull(power) %>%
+  round(2)
+```
+
+
+Our sample size, $n$, is 5. Statistical power, $\beta$, is `r power_anova`.^[Statistical power was estimated using the `pwr` package.  Effect size was calculated using [Cohen's suggestions](https://www.statmethods.net/stats/power.html).]
+
+# Regression
+
+But why not treat those concentrations as a continuous variable and instead fit a quadratic regression?  A quadratic regression fits a line described by a quadratic function (a curve) through the relationship between fertilizer concentration and growth. Here's what this model looks like:
+
+$$
+yield = \beta_0 + \beta_1fert +  \beta_2fert^2
+$$
+
+This method is flexible.  The relationship could be concave, convex, or increasing with a varying slope. If the true relationship is linear, then $\beta_2$ will be zero, and we'll be left with the equation for a line.  
+
+There are two ways to write this model as R code. This first form is useful because the default behavior of `anova()` gives a single p-value for the effect of fertilizer.
+
+```{r echo=TRUE}
+m1a <- lm(yield ~ poly(fert, 2, raw = TRUE), data = df)
+anova(m1a)
+```
+
+This second form is useful because it tells you if the quadratic term is significant (if it's not, you might try just fitting a straight line). `I()` means "literally multiply, don't fit an interaction term".
+
+```{r echo=TRUE}
+m1b <- lm(yield ~ fert + I(fert * fert), data = df)
+anova(m1b)
+```
+
+Either way, there is still a significant effect of fertilizer on yield.
+
+```{r echo=FALSE}
+p_bin_lm <-
+  ggplot(augment(m1b)) +
+  geom_point(aes(x = fert, y = yield), shape = 21, size = 2) +
+  geom_line(data = augment(m1b, newdata = tibble(fert = 100:300)), aes(x = fert, y = .fitted)) +
+  geom_ribbon(
+    data =  augment(m1b, newdata = tibble(fert = 100:300), se_fit = TRUE),
+    aes(
+      x = fert,
+      y = .fitted,
+      ymin = .fitted - .se.fit,
+      ymax = .fitted + .se.fit
+    ),
+    alpha = 0.2
+  ) +
+  scale_y_continuous("% maximum yield") +
+  scale_x_continuous("Fertilizer (kg N / ha)")
+p_bin_lm
+```
+```{r include=FALSE}
+r2 <- glance(m1a)$r.squared
+
+power_lm <-
+  pwr.f2.test(
+    u = 2,
+    v = 12,
+    f2 = r2 / (1 - r2),
+    sig.level = 0.05
+  ) %>%
+  tidy() %>%
+  pull(power) %>% 
+  round(2)
+```
+
+Now $n = 15$, and our power, $\beta$, has gone up to `r power_lm`.  The power is doubled compared to the ANOVA design because of the greater effective sample size in the regression model.
+
+# Better yet, measure the treatment
+
+But wait, there's more!  I haven't told you something about the data I simulated.  I generated data so that growth has a quadratic response to nitrogen concentration **in the soil**, but soil nitrogen isn't perfectly correlated with the nitrogen applied. Your intended treatment is rarely what a plant is actually experiencing. So let's say we can do even better than including the *intended* treatment as a continuous variable---let's get the soil tested for nitrogen content and use **that** as an independent variable.
+
+```{r echo=TRUE}
+m2 <- lm(yield ~ true + I(true * true), data = df)
+anova(m2)
+```
+```{r echo=FALSE}
+p_lm <-
+  ggplot(augment(m2)) +
+  geom_point(aes(x = true, y = yield), shape = 21, size = 2) +
+  geom_line(data = augment(m2,
+                           newdata = tibble(true = seq(min(df$true), max(df$true), length.out = 100))), aes(x = true, y = .fitted)) +
+    geom_ribbon(
+    data =  augment(m2, newdata = tibble(true = seq(min(df$true), max(df$true), length.out = 100)), se_fit = TRUE),
+    aes(
+      x = true,
+      y = .fitted,
+      ymin = .fitted - .se.fit,
+      ymax = .fitted + .se.fit
+    ),
+    alpha = 0.2
+  ) +
+  scale_y_continuous("% maximum yield") +
+  scale_x_continuous("Soil N (kg N / ha)")
+p_lm
+```
+
+```{r include=FALSE}
+r2 <- glance(m2)$r.squared
+power_lm2 <-
+  pwr.f2.test(
+    u = 2,
+    v = 12,
+    f2 = r2 / (1 - r2),
+    sig.level = 0.05
+  ) %>%
+  tidy() %>%
+  pull(power) %>%
+  round(2)
+```
+
+
+Now our power, $\beta$, is `r power_lm2`. It's probably very often worth it to try to measure whatever latent variable that mediates the effect of your treatment. In fact, that increased spread of your data is a *good thing* if you want to better describe the shape of the relationship between treatment and response. 
+
+
+```{r}
+# library(glue)
+# library(ggthemes)
+# (p_anova + labs(title = "ANOVA",
+#                subtitle = glue("\u03b2 = {power_anova}"),
+#                caption = NULL) ) +
+#   (p_lm + labs(title = "Regression",
+#                   subtitle = glue("\u03b2 = {power_lm}"))) &
+#   theme_bw()
+# ggsave("featured.png")
+```
+
