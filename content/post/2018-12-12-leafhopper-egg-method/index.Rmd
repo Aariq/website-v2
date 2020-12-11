@@ -52,3 +52,10 @@ Whether you're working in a vineyard to monitor *Empoasca vitis*, trying to rear
 ### Acknowledgements:
 
 Guan-Hua Liu and Long Jiao helped to confirm that the eggs I was finding were *Empoasca onukii* eggs.  Thanks guys!
+
+### Update!
+
+Here's a great paper validating this method, published by Long Jiao and some of his colleagues at the Tea Research Institute:
+
+Yao Q, Zhang H, Jiao L, Cai X, Wang M, Chen Z (2020) Identifying the Biological Characteristics Associated with Oviposition Behavior of Tea Leafhopper Empoasca onukii Matsuda Using the Blue Light Detection Method. Insects 11:707. [https://doi.org/10.3390/insects11100707](https://doi.org/10.3390/insects11100707)
+
