@@ -1,0 +1,166 @@
+---
+title: Working with matrix-columns in tibbles
+author: Eric R. Scott
+date: '2021-01-11'
+slug: matrix-columns
+categories:
+  - Blog
+tags:
+  - R
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2020-12-11T12:01:43-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: no
+math: yes
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="whats-a-matrix-column" class="section level1">
+<h1>What’s a matrix-column?</h1>
+<p>The <code>tibble</code> package in R allows for the construction of “tibbles”—a sort of “enhanced” data frame. Most of these enhancements are fairly mundane, such as better printing in the console and not modifying column names. One of the unique features of tibbles is the ability to have a column that is a list. <a href="https://jennybc.github.io/purrr-tutorial/ls13_list-columns.html">List-columns</a> have been written about fairly extensively as they are a very cool way of working with data in the tidyverse. A less commonly known feature is that matrix-columns are also possible in a tibble. A matrix-column is a column of a tibble that is itself a <span class="math inline">\(n \times m\)</span> matrix. Because a matrix-column is simultaneously a single column (of a tibble) and <span class="math inline">\(m\)</span> columns (of the matrix), there are some quirks to working with them.</p>
+</div>
+<div id="creating-a-matrix-column." class="section level1">
+<h1>Creating a matrix-column.</h1>
+<p>Data frames and tibbles handle matrix inputs differently. <code>data.frame()</code> adds an <span class="math inline">\(n \times m\)</span> matrix as <span class="math inline">\(m\)</span> columns of a dataframe while <code>tibble()</code> creates a matrix-column.</p>
+<pre class="r"><code>my_matrix &lt;- matrix(rnorm(100), nrow = 10)</code></pre>
+<p>No matrix-column. Just regular columns named <code>mat_col._</code>:</p>
+<pre class="r"><code>df &lt;- data.frame(x = letters[1:10], mat_col = my_matrix)
+dim(df)</code></pre>
+<pre><code>## [1] 10 11</code></pre>
+<pre class="r"><code>colnames(df)</code></pre>
+<pre><code>##  [1] &quot;x&quot;          &quot;mat_col.1&quot;  &quot;mat_col.2&quot;  &quot;mat_col.3&quot;  &quot;mat_col.4&quot; 
+##  [6] &quot;mat_col.5&quot;  &quot;mat_col.6&quot;  &quot;mat_col.7&quot;  &quot;mat_col.8&quot;  &quot;mat_col.9&quot; 
+## [11] &quot;mat_col.10&quot;</code></pre>
+<p>Creating a matrix-colum requires using <code>tibble()</code> instead of <code>data.frame()</code>:</p>
+<pre class="r"><code>tbl &lt;- tibble(x = letters[1:10], mat_col = my_matrix)
+dim(tbl)</code></pre>
+<pre><code>## [1] 10  2</code></pre>
+<pre class="r"><code>colnames(tbl)</code></pre>
+<pre><code>## [1] &quot;x&quot;       &quot;mat_col&quot;</code></pre>
+<p>You can also “group” columns of a data frame or tibble into a matrix-column using <code>dplyr</code>.</p>
+<pre class="r"><code>df_mat_col &lt;-
+  df %&gt;% 
+  mutate(matrix_column = as.matrix(select(., starts_with(&quot;mat_col.&quot;)))) %&gt;% 
+  #then remove the originals
+  select(-starts_with(&quot;mat_col.&quot;))</code></pre>
+<p>This creates a matrix-column, and the column names of the matrix itself come from the original dataframe (i.e. <code>df</code>).</p>
+<pre class="r"><code>colnames(df_mat_col)</code></pre>
+<pre><code>## [1] &quot;x&quot;             &quot;matrix_column&quot;</code></pre>
+<pre class="r"><code>colnames(df_mat_col$matrix_column)</code></pre>
+<pre><code>##  [1] &quot;mat_col.1&quot;  &quot;mat_col.2&quot;  &quot;mat_col.3&quot;  &quot;mat_col.4&quot;  &quot;mat_col.5&quot; 
+##  [6] &quot;mat_col.6&quot;  &quot;mat_col.7&quot;  &quot;mat_col.8&quot;  &quot;mat_col.9&quot;  &quot;mat_col.10&quot;</code></pre>
+</div>
+<div id="when-do-you-need-a-matrix-column" class="section level1">
+<h1>When do you need a matrix-column?</h1>
+<p>Matrix-columns are sometimes useful in modeling, when a predictor or covariate is not just a single variable, but a vector for every observation. For example, in multivariate analyses, certain packages (e.g. <code>ropls</code>) require a matrix as an input. Functional models are another example, which fit continuous functions of some variable (e.g. over time) as a covariate (One specific example are <a href="https://cran.r-project.org/package=dlnm">distributed lag non-linear models</a>, which I hope to start blogging about soon).</p>
+<pre class="r"><code>pca &lt;- prcomp(~ mat_col, data = tbl)
+summary(pca)</code></pre>
+<pre><code>## Importance of components:
+##                           PC1    PC2    PC3    PC4     PC5     PC6     PC7
+## Standard deviation     1.8022 1.6779 1.5645 1.3203 1.02222 0.77201 0.51162
+## Proportion of Variance 0.2647 0.2295 0.1995 0.1421 0.08517 0.04858 0.02134
+## Cumulative Proportion  0.2647 0.4942 0.6937 0.8358 0.92096 0.96954 0.99087
+##                            PC8     PC9      PC10
+## Standard deviation     0.31635 0.10918 5.838e-18
+## Proportion of Variance 0.00816 0.00097 0.000e+00
+## Cumulative Proportion  0.99903 1.00000 1.000e+00</code></pre>
+</div>
+<div id="viewing-and-using-matrix-columns" class="section level1">
+<h1>Viewing and using matrix-columns</h1>
+<p>Matrix-columns are… weird, and as such they have some quirks in how they are printed in RStudio. Some of these may be bugs, but as far as I know, there aren’t any <a href="https://github.com/rstudio/rstudio/issues?q=is%3Aissue+is%3Aopen+matrix+column">issues</a> related to matrix-columns at the time of writing this post. If you are using paged printing of data frames in R Markdown documents, a tibble with a matrix column will simply not appear in-line. Instead you get an empty viewer box like so.</p>
+<div class="figure">
+<img src="fig1.png" alt="" />
+<p class="caption">Trying to print a tibble with a matrix-column shows nothing in RStudio with paged printing of data frames.</p>
+</div>
+<p>You can turn off paged printing for a single code chunk with the <code>paged.print = FALSE</code> chunk option, and you’ll see something more like this:</p>
+<pre class="md"><code>```{r paged.print=FALSE}
+tbl &lt;- tibble(x = letters[1:10], mat_col = my_matrix)
+tbl
+``` </code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    x     mat_col[,1]    [,2]    [,3]    [,4]   [,5]   [,6]   [,7]   [,8]   [,9]
+##    &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+##  1 a          0.464  -1.12   -1.01    1.73    0.531  2.10   1.44   0.836  0.369
+##  2 b          1.82   -0.239   0.749   1.57   -0.256 -1.41  -0.951 -1.71  -1.77 
+##  3 c          0.190  -0.785   1.27   -1.43   -1.82   0.715 -0.593  2.07  -0.228
+##  4 d         -1.18    0.271   1.52    0.135  -0.169 -1.23   0.522 -0.410  1.23 
+##  5 e         -0.509  -0.944   0.108  -1.03    0.407 -0.953 -0.415 -1.25  -0.621
+##  6 f          1.67    0.185  -0.807   0.149   0.114  0.240 -0.791  0.418 -2.13 
+##  7 g         -2.04   -2.38    0.786   0.660  -0.114 -0.935  0.519 -1.32  -0.627
+##  8 h         -0.0686  0.166  -0.0905 -1.18    0.217 -0.695 -1.53  -0.554 -0.610
+##  9 i         -1.65    0.0525 -0.501  -1.64   -0.599 -1.04   0.143 -1.83  -0.626
+## 10 j         -0.623  -0.290  -0.430  -0.0352  0.937 -3.33   2.32   1.10  -0.503
+## # … with 1 more variable: [,10] &lt;dbl&gt;</code></pre>
+<p>Also note that <code>View()</code> only renders the first column of a matrix column, with no indication that there is more to see.</p>
+<div class="figure">
+<img src="fig2.png" alt="" />
+<p class="caption">View()ing a tibble with a matrix-column only shows the first column of the matrix</p>
+</div>
+<p>Despite the printing and viewing issues, matrix columns are surprisingly easy to use. The usual sort of indexing works as expected. You can select the matrix column by name with <code>[</code> or <code>dplyr::select()</code>, and you can extract the matrix column using the <code>$</code> operator, <code>[[</code>, or <code>dplyr::pull()</code>.</p>
+<pre class="r"><code>#a tibble with only the matrix-column
+tbl[&quot;mat_col&quot;]
+select(tbl, mat_col) 
+
+#the matrix itself:
+tbl$mat_col
+tbl[[&quot;mat_col&quot;]]
+pull(tbl, &quot;mat_col&quot;)</code></pre>
+<p>Indexing rows works with no problem too.</p>
+<pre class="r"><code>tbl[3, ]</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   x     mat_col[,1]   [,2]  [,3]  [,4]  [,5]  [,6]   [,7]  [,8]   [,9] [,10]
+##   &lt;chr&gt;       &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1 c           0.190 -0.785  1.27 -1.43 -1.82 0.715 -0.593  2.07 -0.228  2.15</code></pre>
+<pre class="r"><code>#dplyr::filter works too
+filter(tbl, x %in% c(&quot;a&quot;, &quot;f&quot;, &quot;i&quot;))</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   x     mat_col[,1]    [,2]   [,3]   [,4]   [,5]   [,6]   [,7]   [,8]   [,9]
+##   &lt;chr&gt;       &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1 a           0.464 -1.12   -1.01   1.73   0.531  2.10   1.44   0.836  0.369
+## 2 f           1.67   0.185  -0.807  0.149  0.114  0.240 -0.791  0.418 -2.13 
+## 3 i          -1.65   0.0525 -0.501 -1.64  -0.599 -1.04   0.143 -1.83  -0.626
+## # … with 1 more variable: [,10] &lt;dbl&gt;</code></pre>
+<p>And as we saw above, using matrix-columns in model formulas seems to work consistently as long as the input is expected or allowed to be a matrix.</p>
+</div>
+<div id="saving-matrix-columns-to-disk" class="section level1">
+<h1>Saving matrix-columns to disk</h1>
+<p>Ordinary data frames and tibbles (i.e. without list-columns or matrix-columns) can usually be reliably saved as .csv files.</p>
+<p>A tibble with a list-column will throw an error if you try to write it to a .csv file</p>
+<pre class="r"><code>df_list_col &lt;- tibble(x = 1:10, y = list(1:10))
+
+write_csv(df_list_col, &quot;test.csv&quot;)</code></pre>
+<pre><code>## Error: Flat files can&#39;t store the list column `y`</code></pre>
+<p>Tibbles with matrix-columns don’t throw the same error, but unfortunately this is not because they work correctly.</p>
+<pre class="r"><code>write_csv(tbl, &quot;test.csv&quot;)</code></pre>
+<pre class="r"><code>read_csv(&quot;test.csv&quot;)</code></pre>
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────
+## cols(
+##   x = col_character(),
+##   mat_col = col_double()
+## )</code></pre>
+<pre><code>## # A tibble: 10 x 2
+##    x     mat_col
+##    &lt;chr&gt;   &lt;dbl&gt;
+##  1 a      0.464 
+##  2 b      1.82  
+##  3 c      0.190 
+##  4 d     -1.18  
+##  5 e     -0.509 
+##  6 f      1.67  
+##  7 g     -2.04  
+##  8 h     -0.0686
+##  9 i     -1.65  
+## 10 j     -0.623</code></pre>
+<p>As you can see, only the first column of the matrix was saved to the csv file. If you want to use matrix-columns in your work, you should either create them in the same document as your analysis, or save them as .rds files.</p>
+<p>That’s all for now, but please let me know in the comments if you’ve used matrix-columns in your work!</p>
+</div>
