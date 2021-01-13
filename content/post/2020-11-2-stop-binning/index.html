@@ -23,7 +23,7 @@ draft: no
 math: yes
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
 <p>Taking a potentially continuous treatment, binning it into categories, and doing ANOVA results in reduced statistical power and complicated interpretation. Yet, as a graduate student, I was advised to bin continuous treatment variables into categories multiple times by different people. Why? I suspect it’s because ANOVA is what ecologists are most familiar with, and the alternative, a quadratic regression, <em>sounds</em> complicated. A regression also doesn’t let you draw a bar plot with letters over the bars that ecologists really seem to love. Hopefully this example with simulated data will convince you to consider regression over ANOVA<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> when your treatment can be considered continuous (and you suspect a continuous relationship with the response).</p>
@@ -43,7 +43,7 @@ math: yes
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>According to the ANOVA, there is a significant effect of fertilizer on yield (p = 0.026)</p>
 <p>Our results look like this:</p>
-<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
 <p>Our sample size, <span class="math inline">\(n\)</span>, is 5. Statistical power, <span class="math inline">\(\beta\)</span>, is 0.39.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 </div>
@@ -78,7 +78,7 @@ anova(m1b)</code></pre>
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Either way, there is still a significant effect of fertilizer on yield.</p>
-<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Now <span class="math inline">\(n = 15\)</span>, and our power, <span class="math inline">\(\beta\)</span>, has gone up to 0.8. The power is doubled compared to the ANOVA design because of the greater effective sample size in the regression model.</p>
 </div>
 <div id="better-yet-measure-the-treatment" class="section level1">
@@ -95,7 +95,7 @@ anova(m2)</code></pre>
 ## Residuals      12 258.57  21.548                    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p><img src="/post/2020-11-2-stop-binning/index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p>Now our power, <span class="math inline">\(\beta\)</span>, is 0.99. It’s probably very often worth it to try to measure whatever latent variable that mediates the effect of your treatment. In fact, that increased spread of your data is a <em>good thing</em> if you want to better describe the shape of the relationship between treatment and response.</p>
 </div>
 <div class="footnotes">

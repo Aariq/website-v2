@@ -43,7 +43,7 @@ base <-
   geom_line(aes(y = .fitted), color = "blue") +
   labs(x = "Size", y = "Survival")
 
-base + geom_point(aes(y = surv), alpha = 0.2)
+base + geom_point(aes(y = surv), alpha = 0.2) 
 ```
 
 Even with transparency, the overplotted data points just turn into a smear on the top and bottom of your plot, adding little information.  Here are three ways to get more information out of those points and produce more informative plots. But first, a quick introduction to the data.

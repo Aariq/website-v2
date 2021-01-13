@@ -30,7 +30,7 @@ library(equatiomatic)
 library(Hmisc)
 library(broom)
 library(patchwork)
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE) 
 ```
 
 
