@@ -1,0 +1,49 @@
+---
+title: Distributed lag non-linear models
+author: Eric R. Scott
+date: '2021-01-13'
+slug: dlnm
+categories: []
+tags: 
+  - DLNMs
+  - GAMs
+  - R
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-01-13T10:24:00-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: [heliconia]
+math: yes
+draft: no
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="welcome-disclaimer" class="section level1">
+<h1>Welcome / Disclaimer</h1>
+<p>This is the beginning of a series of blog posts where I publicly stumble my way through figuring out some confusing, complicated, and, frankly, cutting-edge modeling and statistics. The models in question are called distributed lag non-linear models (DLNMs) and they are useful for modeling potentially delayed effects of, say, weather on some outcome like plant growth or survival. I’m learning this stuff out loud and out in the open as a way to keep my thoughts organized so that I don’t repeatedly question my decisions, so that others can learn from my mistakes, and so that maybe you, kind read, will help me understand. So, take everything in this series with a grain of salt. I’m not going to go back and edit posts unless I find out I wrote something really egregiously wrong.</p>
+<p>Ok, now on to the show…</p>
+</div>
+<div id="generalized-additive-models-gams" class="section level1">
+<h1>Generalized Additive Models (GAMs)</h1>
+<p>Before we get into DLNMs, I’ll describe a related and important concept—generalized additive models (GAMs). Briefly, GAMs are a way to fit wiggly lines to data, where the wiggliness is penalized such that it tends toward a straight line unless wiggles are supported by the data. GAMs are really useful for modeling non-linear patterns where forcing a linear (or quadratic) relationship doesn’t make sense. I’m not going to talk a whole lot about GAMs, so if you’re interested in this series and GAMs are new to you, I’d recommend checking out Noam Ross’s course, <a href="https://noamross.github.io/gams-in-r-course/">GAMs in R</a>. It’s free and really, really good.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+</div>
+<div id="modeling-lagged-effects" class="section level1">
+<h1>Modeling lagged effects</h1>
+<p>My journey to learning DLNMs started with a <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.12486">paper</a> by Brittany Teller and colleagues that uses functional linear models (FLM) to model the potentially delayed effects of climate on plant growth. A FLM is called that because at least one covariate in the model is itself a continuous function. In this case, rather than including, for example, the temperature 1 month ago, 2 months ago, 3 months ago, etc. as separate covariates, the model includes a continuous function of temperature history as a covariate. They did this in the context of a GAM to allow for a non-linear relationship through lag time. See, I was looking for a method that would allow me to model delayed effects of temperature and precipitation on leafhopper densities in a tea field. However, their method did not allow for a non-linear climate relationship (which seems likely), and, honestly, I had a hard time understanding their code. So I went searching for something else that could model lagged effects.</p>
+<p>I ended up finding a <a href="http://doi.wiley.com/10.1111/biom.12645">paper describing DLNMs</a> by Gasparrini et al. and an R package <a href="http://www.jstatsoft.org/v43/i08/"><code>dlnm</code></a> by the same authors. DLNMs are functional linear models with a special 2-dimensional smooth function, called a “crossbasis” function, as a covariate. The crossbasis function fits a non-linear relationship between the response and the intensity of exposure to some environmental condition (e.g. temperature) on one dimension and a non-linear effect of lag on the other dimension.</p>
+<div class="figure">
+<img src="gasparrini.png" alt="" />
+<p class="caption">From Gasparrini et al. 2017. <a href="http://doi.wiley.com/10.1111/biom.12645" class="uri">http://doi.wiley.com/10.1111/biom.12645</a></p>
+</div>
+<p>For example, in the figure above the relative risk of getting some disease is most strongly impacted by the temperature from 0–10 days prior to diagnosis, with increased relative risk (RR) at both low and very high temperatures (part of Figure 3 from <a href="http://doi.wiley.com/10.1111/biom.12645">Gasparrini et al. 2017</a>).</p>
+<p>The great thing about the <code>dlnm</code> package, is that it allows you to fit these crossbasis functions in the context of a GAM and take advantage of a lot of the great stuff the <code>mgcv</code> package offers. The bad thing is that all of this is very new. And when I say “all of this” I mean DLNMs, DLNMs fit using GAMs, and even GAMs themselves. Heck, it was only in <a href="https://doi.org/10.1080/01621459.2016.1180986">2016</a> when Simon Wood and colleagues answered the question “How to get unbiased AIC values for GAMs?”.</p>
+<p>So in this blog series I’m going to document challenges and confusions I come up against while trying to figure out how to implement and interpret these models. Don’t expect tutorials or great insights or even necessarily complete thoughts. But please, PLEASE, chime in in the comments if you have questions or answers.</p>
+</div>
