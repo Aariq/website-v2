@@ -79,7 +79,7 @@ My journey to learning DLNMs started with a [paper](https://onlinelibrary.wiley.
 
 I ended up finding a [paper describing DLNMs](http://doi.wiley.com/10.1111/biom.12645) by Gasparrini et al. and an R package [`dlnm`](http://www.jstatsoft.org/v43/i08/) by the same authors. DLNMs are functional linear models with a special 2-dimensional smooth function, called a "crossbasis" function, as a covariate. The crossbasis function fits a non-linear relationship between the response and the intensity of exposure to some environmental condition (e.g. temperature) on one dimension and a non-linear effect of lag on the other dimension.
 
-![From Gasparrini et al. 2017. http://doi.wiley.com/10.1111/biom.12645](gasparrini.png)
+![From Gasparrini et al. 2017. <http://doi.wiley.com/10.1111/biom.12645>](gasparrini.png)
 
 For example, in the figure above the relative risk of getting some disease is most strongly impacted by the temperature from 0--10 days prior to diagnosis, with increased relative risk (RR) at both low and very high temperatures (part of Figure 3 from [Gasparrini et al. 2017](http://doi.wiley.com/10.1111/biom.12645)).
 
