@@ -11,6 +11,7 @@ public/
 .RData
 .Ruserdata
 .Rprofile
+.Renviron
 
 # Other
 .DS_Store
