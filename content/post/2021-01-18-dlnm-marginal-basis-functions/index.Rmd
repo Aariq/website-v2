@@ -100,4 +100,4 @@ The minima and maxima are in the same places, which is very reassuring. The wigg
 
 ## Final Decision
 
-I'm going to stick with the cubic regression spline basis (`bs = "cr"`) because it seems to result in a *slightly* better fit to data than the P-spline smoothers. In addition, Simon Wood says "However, in regular use, splines with derivative based penalties (e.g. "tp" or "cr" bases) tend to result in slightly better MSE performance" (see `?smooth.construct.ps.smooth.spec`).
+I'm going to stick with the cubic regression spline basis (`bs = "cr"`) because it seems to result in a *slightly* better fit to data than the P-spline smoothers. In addition, Simon Wood says "However, in regular use, splines with derivative based penalties (e.g. "tp" or "cr" bases) tend to result in slightly better MSE performance" (see `?smooth.construct.ps.smooth.spec`). 
