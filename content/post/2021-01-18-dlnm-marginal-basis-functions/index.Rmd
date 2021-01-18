@@ -1,0 +1,103 @@
+---
+title: DLNM marginal basis functions
+author: Eric R. Scott
+date: '2021-01-18'
+slug: dlnm-basis
+categories: []
+tags: [DLNMs, GAMs]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-01-18T14:39:21-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: [heliconia]
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+ha <- read_rds(here("sitedata", "ha_sample.rds"))
+knitr::opts_chunk$set(paged.print = FALSE)
+```
+
+This is the third post in a series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+
+## Choosing marginal function to construct a crossbasis
+
+According to Gasparrini et al. ([2017](http://doi.wiley.com/10.1111/biom.12645)), a crossbasis function is a "bi-dimensional dose-lag-response function $f \cdot w(x,l)$ is composed of two marginal functions: the standard dose-response function $f(x)$, and the additional lag-response function $w(l)$ that models the lag structure..." Each dimension can be described by a different type of function. The default for the `dlnm` package is a type of smoother called a P-spline, but it can be changed to other types of splines or even something like step function. The marginal functions can also be mixed and matched, e.g., a P-spline for the lag dimension and a step function for the dose-response dimension.
+
+I'd like to use penalized splines for both bases since they are flexible---that is, they can take nearly any functional shape, including a perfectly straight line.
+
+So far I've been using penalized cubic regression splines for both the lag and dose-response dimensions of my DLNMs, but to be perfectly honest, I think I'm only doing this because Teller et al. ([2016](https://onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.12486)) use a similar spline basis, However, they aren't even using DLNMs! I should at least be able to justify my choice of basis function.
+
+
+```{r}
+library(mgcv) #for gam()
+library(dlnm) #for the "cb" basis
+
+#with cubic regression splines for both dimensions
+growth_cr <-
+  gam(log_size_next ~ 
+        log_size +
+        s(spei_history, L, # <- the two dimensions
+          bs = "cb", # <- fit as crossbasis
+          k = c(4, 24), # <- knots for each dimension
+          xt = list(bs = "cr")), # <- what basis to use for each dimension
+      family = gaussian(link = "identity"),
+      method = "REML",
+      data = ha)
+```
+
+Note: for P-splines, the number of knots, `k`, must be 2 greater than order of the basis (default 2, i.e. cubic), so I'm using the minimum (4) for the dose-response dimension.
+
+```{r error=TRUE}
+#with default P-splines for both dimensions
+growth_ps <-
+  gam(log_size_next ~ 
+        log_size +
+        s(spei_history, L, # <- the two dimensions
+          bs = "cb", # <- fit as crossbasis
+          k = c(4, 24)), # <- knots for each dimension
+      family = gaussian(link = "identity"),
+      method = "REML",
+      data = ha)
+```
+
+```{r}
+growth_cr
+growth_ps
+```
+
+The REML score is slightly higher for the `"cr"` basis, which I *think* means a better fit to data (I think this score is what is being maximized by the model fitting algorithm).
+
+```{r}
+AIC(growth_cr, growth_ps)
+```
+
+AIC is also slightly lower for the `"cr"` basis
+
+## Do they produce different shapes?
+
+I'm going to use the trick I "discovered" in the previous blog post to plot the crossbasis function from each model.
+
+```{r}
+growth_cr$smooth[[1]]$plot.me <- TRUE
+growth_ps$smooth[[1]]$plot.me <- TRUE
+```
+
+
+```{r figures, results='hold'}
+par(mfrow = c(1,2))
+plot(growth_cr, scheme = 2)
+plot(growth_ps, scheme = 2)
+```
+
+The minima and maxima are in the same places, which is very reassuring. The wiggliness is different, which is also indicated by the estimated degrees of freedom (8.37 for the "cs" model and 7.63 for the "ps" model).
+
+## Final Decision
+
+I'm going to stick with the cubic regression spline basis (`bs = "cr"`) because it seems to result in a *slightly* better fit to data than the P-spline smoothers. In addition, Simon Wood says "However, in regular use, splines with derivative based penalties (e.g. "tp" or "cr" bases) tend to result in slightly better MSE performance" (see `?smooth.construct.ps.smooth.spec`).
