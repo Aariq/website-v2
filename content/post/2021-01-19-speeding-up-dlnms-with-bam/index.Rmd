@@ -81,6 +81,8 @@ growth_bam <-
       data = ha)
 toc()
 ```
-Hmm.. that took **longer**. The help file for `bam()` seems to indicate that it might not speed things up if a computationally "expensive basis" is used.  So with this small dataset, maybe it's doing more work and taking longer?  I also tried this with the full dataset and it went from 380 seconds to 377 seconds.  I guess I'll stick with `gam()`!
+Hmm.. that took **longer**. The help file for `bam()` seems to indicate that it might not speed things up if a computationally "expensive basis" is used.  So with this small dataset, maybe it's doing more work and taking longer?  
+
+When I switch to `bam()` for the model using the entire dataset (~20,000 rows), I go from 380 seconds to 41 seconds---a significant improvement!
 
 

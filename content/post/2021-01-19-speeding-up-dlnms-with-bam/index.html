@@ -42,7 +42,7 @@ growth &lt;-
       method = &quot;REML&quot;,
       data = ha)
 toc()</code></pre>
-<pre><code>## 0.679 sec elapsed</code></pre>
+<pre><code>## 0.673 sec elapsed</code></pre>
 <p>Remember, this is just a subset of the dataset I’m working with. This same model with the full dataset takes about 90 seconds to run, and if I add a second covariate of year, it takes about 380 seconds.</p>
 </div>
 <div id="set-up-parallization" class="section level2">
@@ -64,6 +64,7 @@ growth_bam &lt;-
       cluster = cl,
       data = ha)
 toc()</code></pre>
-<pre><code>## 2.051 sec elapsed</code></pre>
-<p>Hmm.. that took <strong>longer</strong>. The help file for <code>bam()</code> seems to indicate that it might not speed things up if a computationally “expensive basis” is used. So with this small dataset, maybe it’s doing more work and taking longer? I also tried this with the full dataset and it went from 380 seconds to 377 seconds. I guess I’ll stick with <code>gam()</code>!</p>
+<pre><code>## 2.129 sec elapsed</code></pre>
+<p>Hmm.. that took <strong>longer</strong>. The help file for <code>bam()</code> seems to indicate that it might not speed things up if a computationally “expensive basis” is used. So with this small dataset, maybe it’s doing more work and taking longer?</p>
+<p>When I switch to <code>bam()</code> for the model using the entire dataset (~20,000 rows), I go from 380 seconds to 41 seconds—a significant improvement!</p>
 </div>
