@@ -1,0 +1,86 @@
+---
+title: Speeding up DLNMs with bam()
+author: Eric R. Scott
+date: '2021-01-19'
+slug: dlnm-bam
+categories: []
+tags: [DLNMs, GAMs, R]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-01-19T14:04:12-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+DLNMs themselves may not be *that* computationally expensive, but when combined with random effects and other smoothers, and a large-ish dataset, I've noticed `gam()` being painfully slow.  "Slow" is of course relative, and I'm really only talking like a couple minutes for a model to run.
+
+`bam()` in the `mgcv` package promises to speed up fitting and predicting for GAMs on big datasets by taking advantage of parallellization through the `parallel` package.  I'm going to try to get that working and see how much it really speeds things up.
+
+```{r message=FALSE, warning=FALSE}
+library(mgcv)
+library(dlnm)
+library(parallel)
+library(tictoc) #for simple benchmarking
+```
+```{r include=FALSE}
+library(tidyverse)
+library(here)
+ha <- read_rds(here("sitedata", "ha_sample.rds"))
+```
+
+## Standard gam() DLNM
+
+This is like the DLNM I've been fitting for the last couple of blog posts except now the size covariate is fit as a smooth (`s(log_size)`) and there is a random effect of plot.
+
+```{r}
+tic()
+growth <-
+  gam(log_size_next ~ 
+        s(log_size) +
+        s(plot, bs = "re") + #random effect
+        s(spei_history, L, #crossbasis function
+          bs = "cb", 
+          k = c(3, 24), 
+          xt = list(bs = "cr")),
+      family = gaussian(link = "identity"),
+      method = "REML",
+      data = ha)
+toc()
+```
+
+Remember, this is just a subset of the dataset I'm working with.  This same model with the full dataset takes about 90 seconds to run, and if I add a second covariate of year, it takes about 380 seconds.
+
+## Set up parallization
+
+`parallel` works by running code on multiple R sessions simultaneously.  Read the documentation before messing with this, because I think if you set the number of clusters too high, you will crash your computer.
+
+```{r}
+cl <- makeForkCluster()
+```
+
+Now, I think all I have to do is re-run the same model, just with `bam()` instead of `gam()`, and include the `cluster` argument.
+
+```{r}
+tic()
+growth_bam <-
+  bam(log_size_next ~ 
+        s(log_size) +
+        s(plot, bs = "re") + #random effect
+        s(spei_history, L, #crossbasis function
+          bs = "cb", 
+          k = c(3, 24), 
+          xt = list(bs = "cr")),
+      family = gaussian(link = "identity"),
+      method = "REML",
+      cluster = cl,
+      data = ha)
+toc()
+```
+Hmm.. that took **longer**. The help file for `bam()` seems to indicate that it might not speed things up if a computationally "expensive basis" is used.  So with this small dataset, maybe it's doing more work and taking longer?  I also tried this with the full dataset and it went from 380 seconds to 377 seconds.  I guess I'll stick with `gam()`!
+
+
