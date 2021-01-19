@@ -17,12 +17,14 @@ image:
 projects: [heliconia]
 draft: no
 ---
+
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(here)
 ha <- read_rds(here("sitedata", "ha_sample.rds"))
 knitr::opts_chunk$set(paged.print = FALSE)
 ```
+
 This is the second post in a series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
 
 ## The dlnm package
@@ -351,5 +353,15 @@ growth$smooth[[1]]$plot.me <- TRUE
 plot.gam(growth, scheme = 2)
 ```
 Why is this default plot not available? It's literally **exactly** what I wanted, and I'm pretty sure there's nothing incorrect about it, but it worries me that the author of `dlnm` didn't want me to make it.
+
+# UPDATE
+
+I think I better understand what is going on here now.  `plot.gam()`, and the `ggplot2` implementation of it, `gratia::draw()`, plot the smooth itself, not the predicted values. By "the smooth itself", I mean the function that is acting sort of like one of the coefficients in a GLM.  Instead of $y = \beta_0 + \beta_1 x_1$, we have $y = \beta_0 + f_1(x_1)$.  To further clarify, look at the options for `predict.gam()`. To get predicted $y$ values, you can use `type = "link"` or `type = "response"`.  But if you just want the values for $f_1(x_1)$, then you can use `type = "terms"`.  The plot above looks like the one I want, but the scale is actually not in units of plant size.  See the `gratia` version, which includes a scale bar:
+
+```{r}
+gratia::draw(growth, select = 1)
+```
+
+So my efforts in creating `cb_margeff()` weren't for nothing, afterall, and are not in conflict with the views of the `dlnm` package authors. Some day I should probably figure out how to "manually" calculate values of $y$ from the GAM coefficients, but today is not that day.
 
 
