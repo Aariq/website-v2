@@ -15,33 +15,28 @@ image:
   focal_point: ''
   preview_only: no
 projects: [heliconia]
-draft: yes
+draft: no
 ---
-
-```{r setup, include=FALSE}
+```{r include=FALSE}
 library(tidyverse)
 library(here)
 ha <- read_rds(here("sitedata", "ha_sample.rds"))
-knitr::opts_chunk$set(paged.print = FALSE)
 ```
 
-```{r echo=FALSE}
-blogdown::shortcode_open("alert note")
-```
+{{% alert note %}}
 
 This is part of series about distributed lag non-linear models.
 Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
 
-```{r echo=FALSE}
-blogdown::shortcode_close("alert")
-```
+{{% /alert %}}
 
 A major goal of my [postdoc project](/project/heliconia) is to determine whether drought has an effect on plant vital rates (growth, survival, reproduction, recruitment).
 Getting some measure of statistical significance of drought history in these models is therefore really important for me.
 Even with simple linear models, there are multiple ways of doing hypothesis testing, some more "correct" than others.
 For example, this recent Twitter discussion about the default behavior of `anova()` usually being innapropriate:
 
-```{r}
+
+```{r echo=FALSE}
 blogdown::shortcode("tweet", "1355902690254082048")
 ```
 
@@ -50,23 +45,16 @@ blogdown::shortcode("tweet", "1355902690254082048")
 This [StackExchange answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632) does a really good job of explaining hypothesis testing with GAMs, and I think this extends to DLNMs fit as GAMs.
 Unlike `anova.lm()` or `summary.lm()`, which are generally **not** the ones you want, the p-values in `anova.gam()` and `summary.gam()` are generally safe to interpret (also, they are exactly the same).
 Simon Wood (the author of `mgcv`) has given a lot of thought and published multiple papers on the calculation of these p-values.[^1]
-[^2] For an ordinary penalized smooth (like the default, thin plant regression splines, or the `"cr"` cubic regression spline basis), the actual wiggliness is lower than the maximum wiggliness (defined by the number of knots)
-. This shrinkage toward a straight line (or a plane in the case of a crossbasis function) is expressed by estimated degrees of freedom (edf)
-. For example, if edf $\simeq$ 1, then the smooth is approaching a straight line
-. Let's look at an example
-.
+[^2] For an ordinary penalized smooth (like the default, thin plant regression splines, or the `"cr"` cubic regression spline basis), the actual wiggliness is lower than the maximum wiggliness (defined by the number of knots). This shrinkage toward a straight line (or a plane in the case of a crossbasis function) is expressed by estimated degrees of freedom (edf). For example, if edf `\(\simeq\)` 1, then the smooth is approaching a straight line. Let's look at an example.
 
-[^1]: Wood SN (2013) On p-values for smooth components of an extended generalized additive model.
-    Biometrika 100:221--228 .
-    <https://doi.org/10.1093/biomet/ass048>
-
-[^2]: Marra G, Wood SN (2011) Practical variable selection for generalized additive models.
-    Computational Statistics & Data Analysis 55:2372--2387 .
-    <https://doi.org/10.1016/j.csda.2011.02.004>
 
 ```{r}
 library(mgcv)
 library(dlnm)
+```
+
+
+```{r}
 growth <-
   gam(log_size_next ~ 
         s(log_size) +
@@ -79,27 +67,26 @@ growth <-
       data = ha)
 ```
 
+
 ```{r}
 anova(growth)
 ```
 
 The `edf` for `s(log_size)` is fairly close to 1, indicating that it might be better modeled as a parametric term (i.e. just a slope).
 The edf for the crossbasis function is higher, indicating a more complex surface.
-The reference degrees of freedom `Ref.df` is, I think, another way of calculating the edf, but honestly, the explanation in the help file and associated paper is beyond my understanding.[^3]
+The reference degrees of freedom `Ref.df` is, I think, another way of calculating the edf, but honestly, the explanation in the help file and associated paper is beyond my understanding.
 The test is a modification of a Wald test that can take fractional degrees of freedom (the edf).
 The help file indicates that p-values "may be somewhat too low when smoothing parameters are highly uncertain. High uncertainty happens in particular when smoothing parameters are poorly identified, which can occur with nested smooths or highly correlated covariates (high concurvity)".
 This sounds worrying, but I actually don't think it's that different than the situation with a linear model.
 Highly correlated covariates will *also* give you untrustworthy p-values in an ordinary linear regression, so I'm not sure there's anything super different here.
 
-[^3]: Wood SN (2013) On p-values for smooth components of an extended generalized additive model.
-    Biometrika 100:221--228 .
-    <https://doi.org/10.1093/biomet/ass048>
 
 ## Shrinkage
 
 In the GAM I fit above, the most a term can be penalized to is linear, i.e. edf = 1 (ignore the random effect of plot as it is different).
 If I set `select = TRUE` in the `gam()` call, it adds a second penalty on the "null space" and allows edf to go to 0, effectively dropping out of the model entirely.
 According to the [StackOverflow answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632), this is currently the best way to get p-values for GAMs.
+
 
 ```{r}
 growth_shrink <-
@@ -115,9 +102,11 @@ growth_shrink <-
       data = ha)
 ```
 
+
 ```{r}
 anova(growth_shrink)
 ```
+
 
 All of the edf are smaller, but the `Ref.df` have gone up, and are now whole numbers.
 This is to correct for having done variable selection, I think.
@@ -130,11 +119,23 @@ The test is still a null hypothesis test ($s(x) = 0$), but now terms are allowed
 
 I'm going to use the [`gratia`](https://github.com/gavinsimpson/gratia/) package to plot the smooths from the shrinkage and non-shrinkage versions.
 
+
 ```{r}
 library(gratia)
 draw(growth)
+```
+
+```{r}
 draw(growth_shrink)
 ```
 
 There's really no difference in the shape of `s(log_size)` meaning that the relationship really is log-linear, but that the term *should* stay in the model.
 The surface for the lagged drought effect is similar in shape, but slightly *flatter* in the shrinkage penalized version, just as we'd expect from the edf being lower.
+
+[^1]: Wood SN (2013) On p-values for smooth components of an extended generalized additive model.
+    Biometrika 100:221--228 .
+    <https://doi.org/10.1093/biomet/ass048>
+
+[^2]: Marra G, Wood SN (2011) Practical variable selection for generalized additive models.
+    Computational Statistics & Data Analysis 55:2372--2387 .
+    <https://doi.org/10.1016/j.csda.2011.02.004>
