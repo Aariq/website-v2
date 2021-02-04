@@ -17,39 +17,52 @@ image:
 projects: [heliconia]
 draft: yes
 ---
+
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(here)
 ha <- read_rds(here("sitedata", "ha_sample.rds"))
 knitr::opts_chunk$set(paged.print = FALSE)
 ```
+
 ```{r echo=FALSE}
 blogdown::shortcode_open("alert note")
 ```
 
-This is part of series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+This is part of series about distributed lag non-linear models.
+Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
 
 ```{r echo=FALSE}
 blogdown::shortcode_close("alert")
 ```
 
-A major goal of my [postdoc project](/project/heliconia) is to determine whether drought has an effect on plant vital rates (growth, survival, reproduction, recruitment). Getting some measure of statistical significance of drought history in these models is therefore really important for me.  Even with simple linear models, there are multiple ways of getting p-values (i.e. doing null hypothesis testing), and they are not all equally "correct".  For example, I've been taught to *always* use `car::Anova()` over `anova()` when possible, as they give slightly different answers for some models.  So what's the best way to do null hypothesis testing for DLNMs?
+A major goal of my [postdoc project](/project/heliconia) is to determine whether drought has an effect on plant vital rates (growth, survival, reproduction, recruitment).
+Getting some measure of statistical significance of drought history in these models is therefore really important for me.
+Even with simple linear models, there are multiple ways of doing hypothesis testing, some more "correct" than others.
+For example, this recent Twitter discussion about the default behavior of `anova()` usually being innapropriate:
 
-This [StackExchange answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632) does a really good job of explaining hypothesis testing with GAMs.  I'm going to try some of these strategies out to see how the function with DLNMs (GAMs with a special crossbasis smooth)
+```{r}
+blogdown::shortcode("tweet", "1355902690254082048")
+```
 
-## What is the hypothesis being tested?
+## P-values for GAMs
 
-There's actually multiple ways to think about hypothesis testing with DLNMs, I think.  
+This [StackExchange answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632) does a really good job of explaining hypothesis testing with GAMs, and I think this extends to DLNMs fit as GAMs.
+Unlike `anova.lm()` or `summary.lm()`, which are generally **not** the ones you want, the p-values in `anova.gam()` and `summary.gam()` are generally safe to interpret (also, they are exactly the same).
+Simon Wood (the author of `mgcv`) has given a lot of thought and published multiple papers on the calculation of these p-values.[^1]
+[^2] For an ordinary penalized smooth (like the default, thin plant regression splines, or the `"cr"` cubic regression spline basis), the actual wiggliness is lower than the maximum wiggliness (defined by the number of knots)
+. This shrinkage toward a straight line (or a plane in the case of a crossbasis function) is expressed by estimated degrees of freedom (edf)
+. For example, if edf $\simeq$ 1, then the smooth is approaching a straight line
+. Let's look at an example
+.
 
-- Is the crossbasis function significantly different from a flat plane?
-- Is the crossbasis smooth an improvement over a simpler representation of drought history (e.g. mean SPEI over the past year)?
-- Should drought be dropped from the model completely?
+[^1]: Wood SN (2013) On p-values for smooth components of an extended generalized additive model.
+    Biometrika 100:221--228 .
+    <https://doi.org/10.1093/biomet/ass048>
 
-I think all of these are valid questions, but for this post I'll focus on trying to do something like a marginal hypothesis test to get p-values for the marginal effects of different model terms (like what `car::Anova()` does).
-
-## What does Simon Wood say?
-
-According to the help files, `anova()` gives the same p-values as `summary()` for GAMs, and they are reliable (unlike the p-values from `summary.glm()`?).
+[^2]: Marra G, Wood SN (2011) Practical variable selection for generalized additive models.
+    Computational Statistics & Data Analysis 55:2372--2387 .
+    <https://doi.org/10.1016/j.csda.2011.02.004>
 
 ```{r}
 library(mgcv)
@@ -57,7 +70,6 @@ library(dlnm)
 growth <-
   gam(log_size_next ~ 
         s(log_size) +
-        s(plot, bs = "re") + #random effect
         s(spei_history, L, #crossbasis function
           bs = "cb", 
           k = c(3, 24), 
@@ -71,26 +83,28 @@ growth <-
 anova(growth)
 ```
 
-```{r}
-summary(growth)
-```
+The `edf` for `s(log_size)` is fairly close to 1, indicating that it might be better modeled as a parametric term (i.e. just a slope).
+The edf for the crossbasis function is higher, indicating a more complex surface.
+The reference degrees of freedom `Ref.df` is, I think, another way of calculating the edf, but honestly, the explanation in the help file and associated paper is beyond my understanding.[^3]
+The test is a modification of a Wald test that can take fractional degrees of freedom (the edf).
+The help file indicates that p-values "may be somewhat too low when smoothing parameters are highly uncertain. High uncertainty happens in particular when smoothing parameters are poorly identified, which can occur with nested smooths or highly correlated covariates (high concurvity)".
+This sounds worrying, but I actually don't think it's that different than the situation with a linear model.
+Highly correlated covariates will *also* give you untrustworthy p-values in an ordinary linear regression, so I'm not sure there's anything super different here.
 
-The help file for `summary.gam()` is dense, but what I gather is that a lot of work has gone into doing these calculations correctly. However, it does note that p-values "may be somewhat too low when smoothing parameters are highly uncertain. High uncertainty happens in particular when smoothing parameters are poorly identified, which can occur with nested smooths or highly correlated covariates (high concurvity)".  This sounds worrying, but I actually don't think it's that different than the situation with a linear model.  Highly correlated covariates will *also* give you untrustworthy p-values in an ordinary linear regression, so I'm not sure there's anything super different here.
-
-The degrees of freedom are decimal numbers because they are estimated from the penalized smooths. Rounding up or rounding them down results in biased p-values, so Simon Wood devised a version of a Wald test that takes fractional degrees of freedom. The crossbasis function started with 3 * 24 = 72 knots, but the penalized version is much smoother than that, which is represented by the estimated degrees of freedom (~7.4). 
-
-I can't seem to figure out where the `Ref.df` comes from though.
-
+[^3]: Wood SN (2013) On p-values for smooth components of an extended generalized additive model.
+    Biometrika 100:221--228 .
+    <https://doi.org/10.1093/biomet/ass048>
 
 ## Shrinkage
 
-In the GAM I fit above, the most a term can be penalized to is linear, i.e. edf = 1.  If I set `select = TRUE` in the `gam()` call, it adds a second penalty on the "null space" and allows edf to go to 0, effectively dropping out of the model entirely. According to the [StackOverflow answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632), this is currently the best way to get p-values for GAMs.
+In the GAM I fit above, the most a term can be penalized to is linear, i.e. edf = 1 (ignore the random effect of plot as it is different).
+If I set `select = TRUE` in the `gam()` call, it adds a second penalty on the "null space" and allows edf to go to 0, effectively dropping out of the model entirely.
+According to the [StackOverflow answer](https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632), this is currently the best way to get p-values for GAMs.
 
 ```{r}
 growth_shrink <-
   gam(log_size_next ~ 
         s(log_size) +
-        s(plot, bs = "re") + #random effect
         s(spei_history, L, #crossbasis function
           bs = "cb", 
           k = c(3, 24), 
@@ -100,58 +114,27 @@ growth_shrink <-
       select = TRUE,
       data = ha)
 ```
-
-```{r}
-summary(growth_shrink)
-```
-
-All of the edf are smaller, but the `Ref.df` have gone up, and are now whole numbers. This is to correct for having done variable selection, I think.  Usually it is a bad idea to do variable selection and then do `Anova()` on the final model---the p-values will be biased since you've already pulled terms out of your model.  So instead of getting estimated reference degrees of freedom, we now get something like the number of knots - 1 (although that's not exactly what it is for the crossbasis function).
-
-## Does order of terms matter?
-
-The help file for `anova.gam()` says it works more like `drop1()` than like `anova.lm()`, so the order of terms *shouldn't* matter like it does with `anova()` (which does a so-called "type I" ANOVA).
-
-```{r}
-growth2 <-
-  gam(log_size_next ~ 
-        s(plot, bs = "re") + #random effect
-        s(spei_history, L, #crossbasis function
-          bs = "cb", 
-          k = c(3, 24), 
-          xt = list(bs = "cr")) +
-        s(log_size), #moved this to the end of the formula
-      family = gaussian(link = "identity"),
-      method = "REML",
-      data = ha)
-```
-
-```{r}
-anova(growth)
-anova(growth2)
-```
-
-It seems like everything is identical.  What about with `select = TRUE`?
-
-```{r}
-growth_shrink2 <-
-  gam(log_size_next ~ 
-        s(plot, bs = "re") + #random effect
-        s(log_size) +
-        s(spei_history, L, #crossbasis function
-          bs = "cb", 
-          k = c(3, 24), 
-          xt = list(bs = "cr")),
-      family = gaussian(link = "identity"),
-      method = "REML",
-      select = TRUE,
-      data = ha)
-```
-
 
 ```{r}
 anova(growth_shrink)
-anova(growth_shrink2)
 ```
 
-The reference degrees of freedom and the F value for `s(spei_history,L)` are slightly different, so the order of terms does in fact matter. I will need to check this in the models on the full dataset to make sure nothing odd is happening. 
+All of the edf are smaller, but the `Ref.df` have gone up, and are now whole numbers.
+This is to correct for having done variable selection, I think.
+Usually it is a bad idea to do variable selection and then do `Anova()` on the final model---the p-values will be biased since you've already pulled terms out of your model.
+So instead of getting estimated reference degrees of freedom, we now get something like the number of knots - 1 (although that's not exactly what it is for the crossbasis function).
 
+The test is still a null hypothesis test ($s(x) = 0$), but now terms are allowed to be dropped from the model completely, if they are not supported by the data.
+
+## Visualizing Shrinkage
+
+I'm going to use the [`gratia`](https://github.com/gavinsimpson/gratia/) package to plot the smooths from the shrinkage and non-shrinkage versions.
+
+```{r}
+library(gratia)
+draw(growth)
+draw(growth_shrink)
+```
+
+There's really no difference in the shape of `s(log_size)` meaning that the relationship really is log-linear, but that the term *should* stay in the model.
+The surface for the lagged drought effect is similar in shape, but slightly *flatter* in the shrinkage penalized version, just as we'd expect from the edf being lower.
