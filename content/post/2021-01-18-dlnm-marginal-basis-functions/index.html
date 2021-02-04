@@ -21,7 +21,9 @@ draft: no
 <script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
-<p>This is the third post in a series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% alert note %}}
+<p>This is part of series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% /alert %}}
 <div id="choosing-marginal-function-to-construct-a-crossbasis" class="section level2">
 <h2>Choosing marginal function to construct a crossbasis</h2>
 <p>According to Gasparrini et al. (<a href="http://doi.wiley.com/10.1111/biom.12645">2017</a>), a crossbasis function is a “bi-dimensional dose-lag-response function <span class="math inline">\(f \cdot w(x,l)\)</span> is composed of two marginal functions: the standard dose-response function <span class="math inline">\(f(x)\)</span>, and the additional lag-response function <span class="math inline">\(w(l)\)</span> that models the lag structure…” Each dimension can be described by a different type of function. The default for the <code>dlnm</code> package is a type of smoother called a P-spline, but it can be changed to other types of splines or even something like step function. The marginal functions can also be mixed and matched, e.g., a P-spline for the lag dimension and a step function for the dose-response dimension.</p>

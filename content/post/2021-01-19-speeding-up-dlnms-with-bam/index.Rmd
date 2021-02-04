@@ -17,6 +17,17 @@ image:
 projects: []
 ---
 
+```{r echo=FALSE}
+blogdown::shortcode_open("alert note")
+```
+
+This is part of series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+
+```{r echo=FALSE}
+blogdown::shortcode_close("alert")
+```
+
+
 DLNMs themselves may not be *that* computationally expensive, but when combined with random effects and other smoothers, and a large-ish dataset, I've noticed `gam()` being painfully slow.  "Slow" is of course relative, and I'm really only talking like a couple minutes for a model to run.
 
 `bam()` in the `mgcv` package promises to speed up fitting and predicting for GAMs on big datasets by taking advantage of parallellization through the `parallel` package.  I'm going to try to get that working and see how much it really speeds things up.

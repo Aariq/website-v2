@@ -1,0 +1,231 @@
+---
+title: 'DLNMs: hypothesis tests and p-values'
+author: Eric R. Scott
+date: '2021-01-20'
+slug: dlnm-p-values
+categories: []
+tags: [DLNMs, GAMs, R]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-01-20T16:37:42-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: [heliconia]
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+{{% alert note %}}
+<p>This is part of series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% /alert %}}
+<p>A major goal of my <a href="/project/heliconia">postdoc project</a> is to determine whether drought has an effect on plant vital rates (growth, survival, reproduction, recruitment). Getting some measure of statistical significance of drought history in these models is therefore really important for me. Even with simple linear models, there are multiple ways of getting p-values (i.e. doing null hypothesis testing), and they are not all equally “correct”. For example, I’ve been taught to <em>always</em> use <code>car::Anova()</code> over <code>anova()</code> when possible, as they give slightly different answers for some models. So what’s the best way to do null hypothesis testing for DLNMs?</p>
+<p>This <a href="https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632">StackExchange answer</a> does a really good job of explaining hypothesis testing with GAMs. I’m going to try some of these strategies out to see how the function with DLNMs (GAMs with a special crossbasis smooth)</p>
+<div id="what-is-the-hypothesis-being-tested" class="section level2">
+<h2>What is the hypothesis being tested?</h2>
+<p>There’s actually multiple ways to think about hypothesis testing with DLNMs, I think.</p>
+<ul>
+<li>Is the crossbasis function significantly different from a flat plane?</li>
+<li>Is the crossbasis smooth an improvement over a simpler representation of drought history (e.g. mean SPEI over the past year)?</li>
+<li>Should drought be dropped from the model completely?</li>
+</ul>
+<p>I think all of these are valid questions, but for this post I’ll focus on trying to do something like a marginal hypothesis test to get p-values for the marginal effects of different model terms (like what <code>car::Anova()</code> does).</p>
+</div>
+<div id="what-does-simon-wood-say" class="section level2">
+<h2>What does Simon Wood say?</h2>
+<p>According to the help files, <code>anova()</code> gives the same p-values as <code>summary()</code> for GAMs, and they are reliable (unlike the p-values from <code>summary.glm()</code>?).</p>
+<pre class="r"><code>library(mgcv)</code></pre>
+<pre><code>## Loading required package: nlme</code></pre>
+<pre><code>## 
+## Attaching package: &#39;nlme&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     collapse</code></pre>
+<pre><code>## This is mgcv 1.8-33. For overview type &#39;help(&quot;mgcv-package&quot;)&#39;.</code></pre>
+<pre class="r"><code>library(dlnm)</code></pre>
+<pre><code>## This is dlnm 2.4.2. For details: help(dlnm) and vignette(&#39;dlnmOverview&#39;).</code></pre>
+<pre class="r"><code>growth &lt;-
+  gam(log_size_next ~ 
+        s(log_size) +
+        s(plot, bs = &quot;re&quot;) + #random effect
+        s(spei_history, L, #crossbasis function
+          bs = &quot;cb&quot;, 
+          k = c(3, 24), 
+          xt = list(bs = &quot;cr&quot;)),
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      data = ha)</code></pre>
+<pre class="r"><code>anova(growth)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(plot, bs = &quot;re&quot;) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Approximate significance of smooth terms:
+##                         edf    Ref.df        F p-value
+## s(log_size)        1.362815  1.643824 1441.998  &lt;2e-16
+## s(plot)            0.001146 11.000000    0.000  0.6483
+## s(spei_history,L)  7.399811  8.847164    2.906  0.0019</code></pre>
+<pre class="r"><code>summary(growth)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(plot, bs = &quot;re&quot;) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.25281    0.03753   113.3   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##                        edf Ref.df        F p-value    
+## s(log_size)       1.362815  1.644 1441.998  &lt;2e-16 ***
+## s(plot)           0.001146 11.000    0.000  0.6483    
+## s(spei_history,L) 7.399811  8.847    2.906  0.0019 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.776   Deviance explained = 77.9%
+## -REML = 675.58  Scale est. = 0.39613   n = 689</code></pre>
+<p>The help file for <code>summary.gam()</code> is dense, but what I gather is that a lot of work has gone into doing these calculations correctly. However, it does note that p-values “may be somewhat too low when smoothing parameters are highly uncertain. High uncertainty happens in particular when smoothing parameters are poorly identified, which can occur with nested smooths or highly correlated covariates (high concurvity)”. This sounds worrying, but I actually don’t think it’s that different than the situation with a linear model. Highly correlated covariates will <em>also</em> give you untrustworthy p-values in an ordinary linear regression, so I’m not sure there’s anything super different here.</p>
+<p>The degrees of freedom are decimal numbers because they are estimated from the penalized smooths. Rounding up or rounding them down results in biased p-values, so Simon Wood devised a version of a Wald test that takes fractional degrees of freedom. The crossbasis function started with 3 * 24 = 72 knots, but the penalized version is much smoother than that, which is represented by the estimated degrees of freedom (~7.4).</p>
+<p>I can’t seem to figure out where the <code>Ref.df</code> comes from though.</p>
+</div>
+<div id="shrinkage" class="section level2">
+<h2>Shrinkage</h2>
+<p>In the GAM I fit above, the most a term can be penalized to is linear, i.e. edf = 1. If I set <code>select = TRUE</code> in the <code>gam()</code> call, it adds a second penalty on the “null space” and allows edf to go to 0, effectively dropping out of the model entirely. According to the <a href="https://stats.stackexchange.com/questions/274151/anova-to-compare-models/274632#274632">StackOverflow answer</a>, this is currently the best way to get p-values for GAMs.</p>
+<pre class="r"><code>growth_shrink &lt;-
+  gam(log_size_next ~ 
+        s(log_size) +
+        s(plot, bs = &quot;re&quot;) + #random effect
+        s(spei_history, L, #crossbasis function
+          bs = &quot;cb&quot;, 
+          k = c(3, 24), 
+          xt = list(bs = &quot;cr&quot;)),
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      select = TRUE,
+      data = ha)</code></pre>
+<pre class="r"><code>summary(growth_shrink)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(plot, bs = &quot;re&quot;) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.25062    0.03338   127.3   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##                         edf Ref.df       F  p-value    
+## s(log_size)       1.3502773      9 262.525  &lt; 2e-16 ***
+## s(plot)           0.0002681     11   0.000    0.659    
+## s(spei_history,L) 4.5630138     22   1.184 2.33e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.776   Deviance explained = 77.8%
+## -REML = 673.02  Scale est. = 0.39641   n = 689</code></pre>
+<p>All of the edf are smaller, but the <code>Ref.df</code> have gone up, and are now whole numbers. This is to correct for having done variable selection, I think. Usually it is a bad idea to do variable selection and then do <code>Anova()</code> on the final model—the p-values will be biased since you’ve already pulled terms out of your model. So instead of getting estimated reference degrees of freedom, we now get something like the number of knots - 1 (although that’s not exactly what it is for the crossbasis function).</p>
+</div>
+<div id="does-order-of-terms-matter" class="section level2">
+<h2>Does order of terms matter?</h2>
+<p>The help file for <code>anova.gam()</code> says it works more like <code>drop1()</code> than like <code>anova.lm()</code>, so the order of terms <em>shouldn’t</em> matter like it does with <code>anova()</code> (which does a so-called “type I” ANOVA).</p>
+<pre class="r"><code>growth2 &lt;-
+  gam(log_size_next ~ 
+        s(plot, bs = &quot;re&quot;) + #random effect
+        s(spei_history, L, #crossbasis function
+          bs = &quot;cb&quot;, 
+          k = c(3, 24), 
+          xt = list(bs = &quot;cr&quot;)) +
+        s(log_size), #moved this to the end of the formula
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      data = ha)</code></pre>
+<pre class="r"><code>anova(growth)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(plot, bs = &quot;re&quot;) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Approximate significance of smooth terms:
+##                         edf    Ref.df        F p-value
+## s(log_size)        1.362815  1.643824 1441.998  &lt;2e-16
+## s(plot)            0.001146 11.000000    0.000  0.6483
+## s(spei_history,L)  7.399811  8.847164    2.906  0.0019</code></pre>
+<pre class="r"><code>anova(growth2)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(plot, bs = &quot;re&quot;) + s(spei_history, L, bs = &quot;cb&quot;, 
+##     k = c(3, 24), xt = list(bs = &quot;cr&quot;)) + s(log_size)
+## 
+## Approximate significance of smooth terms:
+##                         edf    Ref.df        F p-value
+## s(plot)            0.001146 11.000000    0.000  0.6483
+## s(spei_history,L)  7.399811  8.847164    2.906  0.0019
+## s(log_size)        1.362815  1.643824 1441.998  &lt;2e-16</code></pre>
+<p>It seems like everything is identical. What about with <code>select = TRUE</code>?</p>
+<pre class="r"><code>growth_shrink2 &lt;-
+  gam(log_size_next ~ 
+        s(plot, bs = &quot;re&quot;) + #random effect
+        s(log_size) +
+        s(spei_history, L, #crossbasis function
+          bs = &quot;cb&quot;, 
+          k = c(3, 24), 
+          xt = list(bs = &quot;cr&quot;)),
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      select = TRUE,
+      data = ha)</code></pre>
+<pre class="r"><code>anova(growth_shrink)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(plot, bs = &quot;re&quot;) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Approximate significance of smooth terms:
+##                         edf    Ref.df       F  p-value
+## s(log_size)       1.350e+00 9.000e+00 262.525  &lt; 2e-16
+## s(plot)           2.681e-04 1.100e+01   0.000    0.659
+## s(spei_history,L) 4.563e+00 2.200e+01   1.184 2.33e-05</code></pre>
+<pre class="r"><code>anova(growth_shrink2)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(plot, bs = &quot;re&quot;) + s(log_size) + s(spei_history, 
+##     L, bs = &quot;cb&quot;, k = c(3, 24), xt = list(bs = &quot;cr&quot;))
+## 
+## Approximate significance of smooth terms:
+##                         edf    Ref.df       F  p-value
+## s(plot)           2.681e-04 1.100e+01   0.000    0.659
+## s(log_size)       1.350e+00 9.000e+00 262.525  &lt; 2e-16
+## s(spei_history,L) 4.563e+00 2.300e+01   1.132 2.33e-05</code></pre>
+<p>The reference degrees of freedom and the F value for <code>s(spei_history,L)</code> are slightly different, so the order of terms does in fact matter. I will need to check this in the models on the full dataset to make sure nothing odd is happening.</p>
+</div>

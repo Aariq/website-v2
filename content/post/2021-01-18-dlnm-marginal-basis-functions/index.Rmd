@@ -25,7 +25,15 @@ ha <- read_rds(here("sitedata", "ha_sample.rds"))
 knitr::opts_chunk$set(paged.print = FALSE)
 ```
 
-This is the third post in a series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+```{r echo=FALSE}
+blogdown::shortcode_open("alert note")
+```
+
+This is part of series about distributed lag non-linear models. Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+
+```{r echo=FALSE}
+blogdown::shortcode_close("alert")
+```
 
 ## Choosing marginal function to construct a crossbasis
 

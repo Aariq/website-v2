@@ -20,6 +20,9 @@ projects: []
 <script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
+{{% alert note %}}
+<p>This is part of series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% /alert %}}
 <p>DLNMs themselves may not be <em>that</em> computationally expensive, but when combined with random effects and other smoothers, and a large-ish dataset, I’ve noticed <code>gam()</code> being painfully slow. “Slow” is of course relative, and I’m really only talking like a couple minutes for a model to run.</p>
 <p><code>bam()</code> in the <code>mgcv</code> package promises to speed up fitting and predicting for GAMs on big datasets by taking advantage of parallellization through the <code>parallel</code> package. I’m going to try to get that working and see how much it really speeds things up.</p>
 <pre class="r"><code>library(mgcv)
@@ -42,7 +45,7 @@ growth &lt;-
       method = &quot;REML&quot;,
       data = ha)
 toc()</code></pre>
-<pre><code>## 0.673 sec elapsed</code></pre>
+<pre><code>## 0.674 sec elapsed</code></pre>
 <p>Remember, this is just a subset of the dataset I’m working with. This same model with the full dataset takes about 90 seconds to run, and if I add a second covariate of year, it takes about 380 seconds.</p>
 </div>
 <div id="set-up-parallization" class="section level2">
@@ -64,7 +67,7 @@ growth_bam &lt;-
       cluster = cl,
       data = ha)
 toc()</code></pre>
-<pre><code>## 2.129 sec elapsed</code></pre>
+<pre><code>## 2.022 sec elapsed</code></pre>
 <p>Hmm.. that took <strong>longer</strong>. The help file for <code>bam()</code> seems to indicate that it might not speed things up if a computationally “expensive basis” is used. So with this small dataset, maybe it’s doing more work and taking longer?</p>
 <p>When I switch to <code>bam()</code> for the model using the entire dataset (~20,000 rows), I go from 380 seconds to 41 seconds—a significant improvement!</p>
 </div>

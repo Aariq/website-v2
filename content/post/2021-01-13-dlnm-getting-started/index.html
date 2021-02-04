@@ -21,7 +21,9 @@ draft: no
 <script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
 
 
-<p>This is the second post in a series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% alert note %}}
+<p>This is part of series about distributed lag non-linear models. Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+{{% /alert %}}
 <div id="the-dlnm-package" class="section level2">
 <h2>The dlnm package</h2>
 <p>The <code>dlnm</code> package offers two ways of fitting crossbasis functions: an “internal” and an “external” method. The “external” method involves fitting the crossbasis function outside of a model, using some functions in the <code>dlnm</code> package, then including the results as a predictor in a model such as a generalized linear model (GLM). I’m going to focus entirely on the “internal” method that fits the crossbasis function in the context of a generalied additive model (GAM) to take advantage of the penalization and other stuff the <code>mgcv</code> package offers.</p>
@@ -95,14 +97,14 @@ library(dlnm) #for the &quot;cb&quot; basis</code></pre>
 <pre><code>## centering value unspecified. Automatically set to 0</code></pre>
 <p>Then you plot those with <code>plot.crosspred()</code>. The default is a 3D plot.</p>
 <pre class="r"><code>plot(pred_dat)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>I prefer a heatmap, although the one produced here has some issues.</p>
 <pre class="r"><code>plot(pred_dat, ptype = &quot;contour&quot;, xlab = &quot;SPEI&quot;, ylab = &quot;lag(months)&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <p>First obvious problem is the colors. The range is the same for red and blue, despite different number of breaks. Second, the units are not what I’d expect. For a marginal effects plot these should be the size of an average plant in year t+1, all else being equal. This is plotting the size relative to the size at an average value of SPEI, which is a weird thing to think about. That’s because the package was built with epidemiology and relative risk in mind. Here is the plot relative to SPEI = 1.5</p>
 <pre class="r"><code>pred_dat &lt;- crosspred(&quot;spei_history&quot;, growth, cen = 1.5)
 plot(pred_dat, ptype = &quot;contour&quot;, xlab = &quot;SPEI&quot;, ylab = &quot;lag(months)&quot;)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 ## Solution (?)</p>
 <p>So, I spent a lot of time writing a complicated function, <code>cb_margeff()</code>, to create data for a marginal effects plot. It creates a <code>newdata</code> data frame to be passed to <code>predict()</code> and loops across different matrixes with all columns of <code>spei_history</code> set to average except for one, representing a range of possible SPEI values.</p>
 <pre class="r"><code>plotdata &lt;- cb_margeff(growth, spei_history, L)
@@ -111,7 +113,7 @@ ggplot(plotdata, aes(x = x, y = lag, fill = fitted)) +
   scale_fill_viridis_c(&quot;size in year t+1&quot;, option = &quot;A&quot;) +
   scale_x_continuous(&quot;SPEI&quot;, expand = c(0,0)) +
   scale_y_continuous(&quot;lag (months)&quot;, expand = c(0,0))</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 Yeah, this is looking better.</p>
 <p>The interpretation of this type of plot (which I would describe as a marginal effects plot, but correct me if I’m wrong) makes more sense to me. If there was drought (low SPEI) about 8 months prior to the census, that’s bad for growth. Drought 20 months prior is good for growth though.</p>
 <p><strong>BUT WAIT</strong></p>
@@ -121,7 +123,7 @@ Yeah, this is looking better.</p>
 <pre><code>## [1] FALSE</code></pre>
 <pre class="r"><code>growth$smooth[[1]]$plot.me &lt;- TRUE
 plot.gam(growth, scheme = 2)</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 Why is this default plot not available? It’s literally <strong>exactly</strong> what I wanted, and I’m pretty sure there’s nothing incorrect about it, but it worries me that the author of <code>dlnm</code> didn’t want me to make it.</p>
 </div>
 <div id="update" class="section level1">
@@ -129,6 +131,6 @@ Why is this default plot not available? It’s literally <strong>exactly</strong
 <p>I think I better understand what is going on here now. <code>plot.gam()</code>, and the <code>ggplot2</code> implementation of it, <code>gratia::draw()</code>, plot the smooth itself, not the predicted values. By “the smooth itself”, I mean the function that is acting sort of like one of the coefficients in a GLM. Instead of <span class="math inline">\(y = \beta_0 + \beta_1 x_1\)</span>, we have <span class="math inline">\(y = \beta_0 + f_1(x_1)\)</span>. To further clarify, look at the options for <code>predict.gam()</code>. To get predicted <span class="math inline">\(y\)</span> values, you can use <code>type = "link"</code> or <code>type = "response"</code>. But if you just want the values for <span class="math inline">\(f_1(x_1)\)</span>, then you can use <code>type = "terms"</code>. The plot above looks like the one I want, but the scale is actually not in units of plant size. See the <code>gratia</code> version, which includes a scale bar:</p>
 <pre class="r"><code>gratia::draw(growth, select = 1)</code></pre>
 <pre><code>## Warning: Removed 423 rows containing non-finite values (stat_contour).</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>So my efforts in creating <code>cb_margeff()</code> weren’t for nothing, afterall, and are not in conflict with the views of the <code>dlnm</code> package authors. Some day I should probably figure out how to “manually” calculate values of <span class="math inline">\(y\)</span> from the GAM coefficients, but today is not that day.</p>
 </div>
