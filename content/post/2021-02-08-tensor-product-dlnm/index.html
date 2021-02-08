@@ -1,0 +1,154 @@
+---
+title: Fitting a DLNM is simple without the {dlnm} package
+author: Eric R. Scott
+date: '2021-02-08'
+slug: [tensor-product-dlnm]
+categories: []
+tags: [DLNMs, GAMs, R]
+subtitle: 'Wait, then what does {dlnm} do?'
+summary: ''
+authors: []
+lastmod: '2021-02-08T10:30:13-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: [heliconia]
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<!-- Hey, you might not bother finishing this.  You already talked about it in an earlier post on visualizing results of DLNMs -->
+<p>{{% alert note %}}</p>
+<p>This is part of series about distributed lag non-linear models.
+Please read the <a href="/post/dlnm">first post</a> for an introduction and a disclaimer.</p>
+<p>{{% /alert %}}</p>
+<p>Since I’ve been working so much with GAMs for this project, I decided to read sections of Simon Wood’s book, <a href="https://www.google.com/books/edition/Generalized_Additive_Models/HL-PDwAAQBAJ?hl=en&amp;gbpv=0">Generalized additive models: an introduction with R</a> more thoroughly. In Chapter 5: Smoothers, there is an example <strong>tensor product</strong> smooth (more on what that means later) fitting a distributed lag model. When I saw this, I started to question <em>everything</em>. What was the <code>dlnm</code> package even doing if I could fit a DLNM with just <code>mgcv</code>? Was it doing something <em>wrong</em>? Was I interpreting it wrong? Am I going to have to change EVERYTHING?</p>
+<p>I also found <a href="https://cdnsciencepub.com/doi/abs/10.1139/cjfr-2018-0027">this wonderful paper</a> by Nothdurft and Vospernik that fits a DLNM for yearly tree ring data explained by lagged, non-linear, monthly weather data. They also used only the <code>mgcv</code> package and tensor product smooths to fit this model. So what is a tensor product and what is the <code>dlnm</code> package doing differently?</p>
+<div id="tensor-products" class="section level2">
+<h2>Tensor Products</h2>
+<p>A tensor product smooth is a two (or more) dimensional smooth such that the shape of one dimension varies smoothly over the other dimension. Tensor products are constructed from two (or more) so-called marginal smooths. Imagine a basket weave of wood strips. The strips can be different widths and be more or less flexible in each dimension. The flexibility of the strips roughly corresponds to a smoothing penalty (stiffer = smoother) and the number and width of strips roughly corresponds to number of knots. You can bend the first strip on one dimension, but you can’t really bend the adjacent strip in the completely opposite direction. The shape of the strips in one dimension is forced to vary smoothly across the other dimension.</p>
+<p><img src="basket.png" width="349" /></p>
+<p>The tensor product for a DLNM has the environmental predictor on one dimension (SPEI, in our example) and lag time on the other dimension. So SPEI can have a non-linear effect on plant growth, but the shape of that relationship with lag = 0 is constrained to be similar to the shape at lag = 1 (the adjacent strip of wood). The change in the shape of the SPEI effect varies smoothly with lag time. Here’s a pure <code>mgcv</code> implementation of a DLNM.</p>
+<pre class="r"><code>library(mgcv)</code></pre>
+<pre><code>## Loading required package: nlme</code></pre>
+<pre><code>## 
+## Attaching package: &#39;nlme&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     collapse</code></pre>
+<pre><code>## This is mgcv 1.8-33. For overview type &#39;help(&quot;mgcv-package&quot;)&#39;.</code></pre>
+<pre class="r"><code>growth_te &lt;-
+  gam(log_size_next ~ 
+        s(log_size) +
+        te(spei_history, L,
+          bs = &quot;cr&quot;, 
+          k = c(5, 15)),
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      select = TRUE,
+      data = ha)</code></pre>
+</div>
+<div id="so-what-the-heck-is-dlnm-doing-thats-different" class="section level2">
+<h2>So what the heck is {dlnm} doing that’s different?</h2>
+<p>After re-reading Gasparrini’s papers for the billionth time and reading more of Simon Wood’s book, I realized the difference between the pure <code>mgcv</code> approach and the <code>dlnm</code> approach had to do with “identifiability constraints”. Basically, because a GAM is a function that has covariates which themselves are functions, those smooth covariates are usually constrained to sum to 0.
+For example, the smooth term for <code>s(log_size)</code> looks essentially centered around 0 on the y-axis when plotted.</p>
+<pre class="r"><code>library(gratia)
+draw(growth_te, select = 1)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Tensor product smooths in <code>mgcv</code> have this constraint as well, but not for each marginal function. The entire <em>surface</em> sums to zero.</p>
+<pre class="r"><code>draw(growth_te, select = 2, dist = Inf)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>The <code>dlnm</code> package constructs a “crossbasis” function, but it does this by using <strong>tensor products</strong> from <code>mgcv</code>. So what is the difference? Well, the major difference is in how it does identifiability constraints. For <code>te(..)</code>, the entire surface must sum to zero. For <code>s(..., bs = "cb")</code>, the predictor-response dimension is constrained to sum to zero. That means that every slice for any value of lag must sum to zero. It also removes the the intercept from that dimension, so the resulting smooth ends up having fewer knots and fewer maximum degrees of freedom.</p>
+<p>Here’s the <code>dlnm</code> version:</p>
+<pre class="r"><code>library(dlnm)</code></pre>
+<pre><code>## This is dlnm 2.4.2. For details: help(dlnm) and vignette(&#39;dlnmOverview&#39;).</code></pre>
+<pre class="r"><code>growth_cb &lt;-
+  gam(log_size_next ~ 
+        s(log_size) +
+        s(spei_history, L, #crossbasis function
+          bs = &quot;cb&quot;, 
+          k = c(5, 15), 
+          xt = list(bs = &quot;cr&quot;)),
+      family = gaussian(link = &quot;identity&quot;),
+      method = &quot;REML&quot;,
+      select = TRUE,
+      data = ha)</code></pre>
+<pre class="r"><code>draw(growth_cb, select = 2, dist = Inf)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Notice how it looks much more symmetrical left to right. This is more clear if we plot all the slices through lag time on top of eachother, kind of like holding the surface up with the x-axis at eye-level and looking down the y-axis in the middle.</p>
+<pre class="r"><code>eval_cb &lt;- evaluate_smooth(growth_cb, &quot;spei_history&quot;, dist = Inf)
+eval_te &lt;- evaluate_smooth(growth_te, &quot;spei_history&quot;, dist = Inf)</code></pre>
+<pre class="r"><code>eval_cb %&gt;% 
+  #just take beginning and end
+  # filter(L == min(L) | L == max(L)) %&gt;% 
+  mutate(L = as.factor(L)) %&gt;% 
+  ggplot(aes(x = spei_history, y = est, group = L)) + 
+  geom_line(alpha = 0.1) +
+  labs(title = &quot;crossbasis from {dlnm}&quot;) +
+  coord_cartesian(xlim = c(-0.5,0.5), ylim = c(-0.02, 0.02)) +
+
+eval_te %&gt;% 
+  #just take beginning and end
+  # filter(L == min(L) | L == max(L)) %&gt;% 
+  mutate(L = as.factor(L)) %&gt;% 
+  ggplot(aes(x = spei_history, y = est, group = L)) +
+  geom_line(alpha = 0.1) +
+  labs(title = &quot;tensor product from {mgcv}&quot;) +
+  coord_cartesian(xlim = c(-0.5,0.5), ylim = c(-0.02, 0.02))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+The crossbasis function intercepts are more tightly aligned, I think because of the sum-to-zero constraint along the <code>spei_history</code> axis.</p>
+<p>Oddly, the slices in the <code>dlnm</code> version still don’t all sum to zero, so maybe I’m still not totally explaining this right.</p>
+</div>
+<div id="what-does-it-all-mean" class="section level2">
+<h2>What does it all mean?</h2>
+<p>Ultimately, there is little difference between these approaches for these data. If we use the <code>cb_margeff()</code> function I mentioned <a href="post/dlnm-getting-started">earlier</a> on in this series to get fitted values of y (for the whole GAM, not just the smooth), then the two models look nearly identical.</p>
+<pre class="r"><code>pred_cb &lt;- cb_margeff(growth_cb, spei_history, L)
+pred_te &lt;- cb_margeff(growth_te, spei_history, L)</code></pre>
+<pre class="r"><code>ggplot(pred_cb, aes(x = x, y = lag, fill = fitted)) + 
+  geom_raster() +
+  geom_contour(aes(z = fitted), binwidth = 0.01, color = &quot;black&quot;, alpha = 0.3) +
+  scale_fill_viridis_c(option = &quot;plasma&quot;) +
+  labs(title = &quot;{dlnm} crossbasis&quot;) +
+
+ggplot(pred_te, aes(x = x, y = lag, fill = fitted)) + 
+  geom_raster() +
+  geom_contour(aes(z = fitted), binwidth = 0.01, color = &quot;black&quot;, alpha = 0.3) +
+  scale_fill_viridis_c(option = &quot;plasma&quot;) +
+  labs(title = &quot;{mgcv} tensor product&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>And the summary statistics are very similar as well</p>
+<pre class="r"><code>anova(growth_cb)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + s(spei_history, L, bs = &quot;cb&quot;, k = c(5, 
+##     15), xt = list(bs = &quot;cr&quot;))
+## 
+## Approximate significance of smooth terms:
+##                      edf Ref.df       F  p-value
+## s(log_size)        1.363  9.000 261.921  &lt; 2e-16
+## s(spei_history,L)  4.570 23.000   1.077 4.01e-05</code></pre>
+<pre class="r"><code>anova(growth_te)</code></pre>
+<pre><code>## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## log_size_next ~ s(log_size) + te(spei_history, L, bs = &quot;cr&quot;, 
+##     k = c(5, 15))
+## 
+## Approximate significance of smooth terms:
+##                       edf Ref.df       F  p-value
+## s(log_size)         1.364  9.000 261.905  &lt; 2e-16
+## te(spei_history,L)  4.618 26.000   0.955 4.02e-05</code></pre>
+<p>The major difference, you’ll notice, is that the reference degrees of freedom are larger for the tensor product version. Again, that is because the crossbasis function constrains the SPEI dimension to sum to zero and the intercept along that dimension is removed.</p>
+</div>
+<div id="why-dlnm" class="section level2">
+<h2>Why {dlnm}?</h2>
+<p>So the advantages of the <code>dlnm</code> package for fitting DLNMs are probably mostly evident when you consider cases besides GAMs. For example, If I wanted to constrain the lag dimension to be a switchpoint function, or if I wanted the SPEI dimension to be strictly a quadratic function, I could do that with <code>dlnm</code>. If you’re interested in interpreting your results in terms of relative risk ratios, then <code>dlnm</code> offers some OK visualiztion options for that. When using smooth functions for both marginal bases, the differences between using a straight tensor product with <code>te()</code> and using a crossbasis function start to fade away. The <code>dlnm</code> version is still a little easier to interpret, I think, because you can more easily compare slices through lag time with the plot of the smooth itself.</p>
+</div>

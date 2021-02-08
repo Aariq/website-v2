@@ -1,0 +1,97 @@
+---
+title: Exploring the {gratia} package
+author: Eric R. Scott
+date: '2021-02-04'
+slug: [gratia-package]
+categories: []
+tags: [DLNMs, GAMs, R]
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-02-04T12:27:39-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: yes
+---
+
+<!-- Hey, you might not bother finishing this.  You already talked about it in an earlier post on visualizing results of DLNMs -->
+
+```{r include=FALSE, paged.print=FALSE}
+library(tidyverse)
+library(here)
+ha <- read_rds(here("sitedata", "ha_sample.rds"))
+```
+
+{{% alert note %}}
+
+This is part of series about distributed lag non-linear models.
+Please read the [first post](/post/dlnm) for an introduction and a disclaimer.
+
+{{% /alert %}}
+
+In my last post in the DLNM series, I used the `gratia` package with no introduction or explanation.  I want to explore it a bit here.  In particular, I want to use it to explore the difference between plotting predicted values of a GAM and plotting a smooth itself.
+
+## Plotting model results
+
+There are several ways one could plot the effect of one covariate on the response for a given model.  One way is to plot the best-fit line between some covariate, $x$, and fitted values when all other covariates are set to their average (for continuous) or reference (for factors) levels.  I'd call this a "marginal effects plot" of the effect of $x$ on $y$, although I'm not 100% sure I'm correct with that definition.  We can also make one of these for a GAM using `predict()` or `broom::augment()`.  
+
+```{r}
+library(mgcv)
+library(dlnm)
+# same GAM as last time
+growth <-
+  gam(log_size_next ~ 
+        s(log_size) +
+        s(spei_history, L, #crossbasis function
+          bs = "cb", 
+          k = c(3, 24), 
+          xt = list(bs = "cr")),
+      family = gaussian(link = "identity"),
+      method = "REML",
+      data = ha)
+```
+
+I'll make a marginal effects plot for the effect of log(size) in year t on log(size) in year t+1.  First, I need to create `newdata`:
+
+```{r paged.print=FALSE}
+newdata <- 
+  #create mesh of x values to predict over
+  tibble(log_size = seq(min(ha$log_size), max(ha$log_size), length.out = 100)) %>% 
+  #add covariate of SPEI at mean value
+  mutate(spei_history = mean(ha$spei_history),
+         L = matrix(1:36, nrow = 100, ncol = 36, byrow = TRUE))
+```
+
+
+Now I can use this to predict fitted values given average SPEI.
+
+```{r paged.print=FALSE}
+pred <- broom::augment(growth, newdata = newdata)
+ggplot(pred, aes(x = log_size)) + 
+  geom_line(aes(y = .fitted), color = "blue") + 
+  geom_point(data = ha, aes(x = log_size, y = log_size_next), alpha = 0.5) +
+  labs(x = "log(size_t)", y = "log(size_t+1)")
+```
+
+I can also create a marginal effects plot for the crossbasis smooth, but it is more complicated because I need to predict over all combinations of a range of SPEI values and lag times. This is what the `cb_margeff()` function I introduced in a [previous post]() does.
+
+```{r}
+newdata2 <- 
+```
+
+
+
+...
+
+Then, in the next post, I'll use these plots to explore differences between DLNM's `bs = "cb"` and a standard tensor product smooth `te()`.
+
+
+For a GAM like
+
+y ~ 1 + s(size) + te(SPEI, L)
+
+I could get the overall effect of lagged SPEI by just plotting `te(SPEI, L)` and adding the intercept and `s(mean(size))`.  So really I'd only need to do `predict()` on a single value of size as newdata.
