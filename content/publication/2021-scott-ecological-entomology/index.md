@@ -74,5 +74,6 @@ projects: [climate-leafhopper-quality]
 slides: ""
 ---
 
-<!-- Twitter thread:
- {{< tweet 1361441596730966024 >}} -->
+Twitter thread:
+
+{{< tweet 1364958405484564487 >}}
