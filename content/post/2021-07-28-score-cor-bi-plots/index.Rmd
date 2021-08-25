@@ -1,0 +1,219 @@
+---
+title: Plotting Multivariate Analyses with ggplot2
+author: Eric R. Scott
+date: '2021-02-08'
+slug: [tensor-product-dlnm]
+categories: []
+tags: [multivariate statistics, data visualization, R, ggplot2]
+subtitle: 'Score, loading, correlation, and bi-plots with ggplot2 and friends'
+summary: ''
+authors: []
+lastmod: '2021-07-28T10:30:13-05:00'
+featured: no
+draft: yes
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+- what score, loading, correlation, bi-plots are (rely heavily on links as this post focused on plotting)
+- use palmer penguins dataset
+- how to find data for plots in model objects (one or two examples)
+- wide to long
+- 95% CI ellipse
+- convex hull
+- labeled arrows
+- axis labels w/ `glue`
+
+There are a lot of different methods available for projecting multivariate data onto a few axes that capture most of the variation (or co-variation) in the data.  Examples include PCA, NMDS, RDA, PLS, and many more acronyms.  Visualizing results from all of these methods share some things in common, but not enough in common that there exists a single R package that can generate good looking plots for all the multivariate analysis packages in existence.  Often, packages will have a `plot()` method that produces a (usually fairly ugly) base R score plot, loading plot, or maybe even a biplot. The results of `plot()` aren't R objects that can be easily manipulated or customized though, so you're often left to re-create plots from scratch if you want to make something publication quality.  This is a guide to my general approach for creating score plots and loading plots resulting from any sort of multivariate analysis^*^ using `ggplot2` and a few other packages that extend `ggplot2`.
+
+*This only includes analyses that involve projecting data onto new axes.  PERMANOVA, for example, has no natural way to plot results.
+
+# Dataset
+
+As an example dataset, I'll use the [`palmerpenguins` package](https://allisonhorst.github.io/palmerpenguins/). It contains data on bill length and depth, flipper length, and body mass of different penguin species.  We'll do PCA on these variables to see if it separates species.
+
+```{r}
+library(palmerpenguins)
+head(penguins)
+```
+# The analysis
+
+There are many forms of multivariate data analysis, but one of the most common (at least in my field) is principal components analysis, an unsupervised method that calculates principal components or axes that represent linear combinations of correlated variables.  The data are then projected onto these new axes as "scores". Read more here...
+
+There are many ways of doing PCA in R (many of which are listed [here](https://cran.r-project.org/web/views/Multivariate.html)).  I'm going to focus on the base R `prcomp()` and `rda()` from the `vegan` package as examples, but the idea is to give you a workflow that you can apply to whatever package you're using and whatever multivariate analysis you're using to plot your results.
+
+## With prcomp()
+
+First, let's do the PCA and take a look at the plots already available through base R.
+
+```{r}
+library(tidyverse)
+# remove NAs
+penguins <- penguins %>% filter(!is.na(bill_length_mm))
+#just use morphological variables
+X <- penguins %>% 
+  select(bill_length_mm:body_mass_g)
+out_prcomp <- prcomp(X, scale. = TRUE)
+out_prcomp
+```
+
+```{r}
+biplot(out_prcomp)
+```
+The plot produced by `biplot()` shows scores represented as rownumbers, I think, and it's incredibly messy and bascially impossible to read. We can do *a lot* better than this!
+
+In this case the data we need to reproduce this plot is in the `out_prcomp` object.  What we're looking for is scores to plot the position of the observations along PC1 and PC2 and loadings, to plot arrows showing how the axes are related to the variables.
+
+```{r}
+names(out_prcomp)
+```
+
+`out_prcomp`, like many R objects, is really just a list.  We can look at each of the elements and see that `out_prcomp$rotation` and `out_prcomp$x` are both matrixes
+
+```{r}
+out_prcomp$rotation
+```
+
+The `rotation` dataframe is clearly the loadings since the rownames are the variables.
+
+```{r}
+head(out_prcomp$x)
+```
+
+The `x` matrix holds the scores, with each row being a different observation (penguin) and the columns are the coordinates for those observations projected onto the principal component axes.
+
+### Score Plot
+
+Let's start with the scores.  My goal here is to start by plotting points on the first two principal components.
+
+```{r}
+scores <- as.data.frame(out_prcomp$x)
+
+ggplot(scores) +
+  geom_point(aes(x = PC1, y = PC2))
+```
+
+Now, it would be nice if we could look for any structure in the data.  To do this, we need to join the scores to the raw data.
+
+```{r}
+scores_data <- bind_cols(penguins, scores)
+pca <- 
+  ggplot(scores_data, aes(x = PC1, y = PC2, color = species)) +
+  geom_point()
+pca
+
+```
+Now let's add some info to the axis labels.  Typically, axis labels for PCA and other similar methods will show what percentage of the variation in the data is explained by the axis parenthetically.  We can see that info in the `summary()` of our PCA.
+
+```{r}
+summary(out_prcomp)
+```
+
+PC1 explains 68.8% of the variation and PC2 explains 19.3%
+
+```{r}
+pca <-
+  pca +
+  labs(x = "PC1 (68.6%)",
+       y = "PC2 (19.3%)")
+
+pca
+```
+
+Next, there are two methods commonly used to show groupings/separation on score plots: convex hulls and confidence ellipses.  A convex hull is simply a convex polygon drawn around all the points in a group—it doesn't have any statistical interpretation, but it can aid visualization in busy plots.  A `stat_chull()` is available in the `ggpubr` package that makes this easy.
+
+```{r}
+library(ggpubr)
+pca + stat_chull(geom = "polygon", aes(fill = species), alpha = 0.3)
+```
+
+`geom = "polygon"` is necessary, otherwise it will draw a line that's not connected at the ends.  Here I'm setting the fill the same as the points and making it transparent so you can see the points underneath (and overlap of the hulls).  This is a bit redundant, but we could use a hull to represent something different—island for example.
+
+```{r}
+ggplot(scores_data, aes(x = PC1, y = PC2, shape = species)) +
+  geom_point() +
+  stat_chull(geom = "polygon", aes(fill = island, linetype = island), color = "black", alpha = 0.3)
+```
+
+The other common way to show grouping is with confidence ellipses. 95% confidence ellipses can be added with `stat_ellipse()` from `ggplot2`.  These ellipses do at least imply some statistical meaning, and may not be appropriate for every method. For example, you cannot say that groups are statistically different based on ellipses in a PLS score plot! See [this previous post](https://www.ericrscott.com/post/cupcakes-vs-muffins-round-2/) for why.
+
+```{r}
+pca + stat_ellipse()
+```
+
+### Loading Plot
+
+The loading plot is a little more complicated to make, since it usually involves drawing arrows from 0,0 out to the value to indicate how variables are "loaded" onto the axes.
+
+```{r}
+loadings <- as_tibble(out_prcomp$rotation, rownames = "var")
+loadings
+```
+
+To start, I'll use `geom_segment()` for the arrows.  The default arrows are too big, so I'll adjust them with arguments to `arrow()`.  I'll also add the same axis labels right away.
+
+```{r}
+pca_load <- 
+  ggplot(loadings) +
+  geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2), 
+               arrow = arrow(length = unit(0.025, "npc"))) +
+  labs(x = "PC1 (68.6%)",
+       y = "PC2 (19.3%)")
+pca_load
+```
+
+Now I'll add the labels.  I like to use the `ggrepel` package for this, as it automatically moves the labels away from the arrows without having to mess with adjusting them manually.
+
+```{r}
+library(ggrepel)
+pca_load <- 
+  pca_load +
+  geom_label_repel(aes(x = PC1, y = PC2, label = var), point.padding = 10, min.segment.length = 0)
+pca_load
+```
+
+In the past when I've had to plot more crowded loading plots, I've done some complicated adjusting of the coordinates for the labels so that they always tend to be "in front" of the arrows.  You can see an example of this [here](https://github.com/Aariq/BACE-legacy-effects/blob/5fbeb41de44023393cac35b13a465e27db5bb000/R/plot_rda.R#L33).
+
+The score and loading plots are easier to interpret side by side if the center is at the same point.  The easiest way to do that is to force the axes to by symmetrical and centered at zero.  There's a `symmetric_limits` function avialable in the `ggpmisc` package that works well for this.
+
+```{r}
+library(ggpmisc)
+pca <-
+  pca +
+  scale_x_continuous(limits = symmetric_limits) + 
+  scale_y_continuous(limits = symmetric_limits)
+pca_load <-
+  pca_load + 
+  scale_x_continuous(limits = symmetric_limits) +
+  scale_y_continuous(limits = symmetric_limits)
+
+pca
+pca_load
+```
+
+And I'll just finish it up a bit...
+
+```{r}
+library(patchwork) #for multipanel figures
+(pca + stat_ellipse()) /
+pca_load &
+  theme_bw() &
+  plot_annotation(tag_levels = "a")
+```
+
+## With vegan::rda()
+
+Because not all packages output scores and loadings the same way, you might need to do some digging to find thes data.  For example, for objects created by `rda()` from the `vegan` package, you can actually get the data you need from saving the results of `plot()`.  In this case, the `plot()` method is silently returning the data used to make the plot.
+
+```{r}
+library(vegan)
+out_rda <- rda(scale(X))
+x <- plot(out_rda)
+x$species #loadings
+head(x$sites) #scores
+```
+
+Once you've identified the score and loading data, you can use the same methods above to make your customizable plot.
