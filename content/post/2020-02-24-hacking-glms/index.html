@@ -22,11 +22,13 @@ image:
 <div id="data" class="section level1">
 <h1>Data</h1>
 <p>I’ll be using data on the Northern Rocky Mountain grey wolf population. You can read more about the history of these wolves <a href="https://www.justice.gov/enrd/northern-rocky-mountain-gray-wolves">here</a>.</p>
-<pre class="r"><code>library(tidyverse)
-wolves &lt;- read_csv(&quot;NRMwolves.csv&quot;) %&gt;%
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 4.0.5</code></pre>
+<pre><code>## Warning: package &#39;readr&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>wolves &lt;- read_csv(&quot;NRMwolves.csv&quot;) %&gt;%
   mutate(year_post = year - 1982) 
 head(wolves)</code></pre>
-<pre><code>## # A tibble: 6 x 8
+<pre><code>## # A tibble: 6 × 8
 ##    year num.wolves MT.wolves WY.wolves ID.wolves OR.wolves WA.wolves year_post
 ##   &lt;dbl&gt;      &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
 ## 1  1982          8         8        NA        NA        NA        NA         0
@@ -139,5 +141,9 @@ log(N_{t+1})= r-\frac{r}{K}N_{t} + \textrm{offset}[log(N_{t})]
 <pre class="r"><code>emo::ji(&quot;exploding_head&quot;)</code></pre>
 <pre><code>## 🤯</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<ul>
+<li><a href="https://raw.githubusercontent.com/Aariq/website-v2/master/content/post/2020-02-24-hacking-glms/index.Rmd">Download .Rmd file</a></li>
+<li><a href="https://raw.githubusercontent.com/Aariq/website-v2/master/content/post/2020-02-24-hacking-glms/NRMwolves.csv">Download data</a></li>
+</ul>
 </div>
 </div>

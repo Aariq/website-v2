@@ -195,3 +195,6 @@ ggplot(wolves2, aes(x = year, y = num.wolves)) +
   geom_point() +
   geom_line(aes(y = predict(m_rick, type = "response")), color = "brown")
 ```
+
+- [Download .Rmd file](https://raw.githubusercontent.com/Aariq/website-v2/master/content/post/2020-02-24-hacking-glms/index.Rmd)
+- [Download data](https://raw.githubusercontent.com/Aariq/website-v2/master/content/post/2020-02-24-hacking-glms/NRMwolves.csv)
