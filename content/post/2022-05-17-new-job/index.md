@@ -3,7 +3,7 @@ title: "New job: Scientific Programmer & Educator"
 subtitle: 'at University of Arizona'
 author: Eric R. Scott
 date: '2022-05-17'
-slug: ["2022-05-17-new-job""]
+slug: ["2022-05-17-new-job"]
 categories:
   - Blog
 tags:
