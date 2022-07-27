@@ -68,5 +68,7 @@ projects: [pls-ecology]
 slides: ""
 ---
 
+- Recipient of Ehleringer Prize for best sutdent-authored paper on plant ecology in 2021 in Oecologia ($500)
+
 Twitter thread:
 {{< tweet 1361441596730966024 >}}
