@@ -50,6 +50,9 @@ social:
 - icon: twitter
   icon_pack: fab
   link: https://twitter.com/leafyericscott
+- icon: mastodon
+  icon_pack: fab
+  link: https://fosstodon.org/@LeafyEricScott
 - icon: google-scholar
   icon_pack: ai
   link: https://scholar.google.co.uk/citations?user=kPEDEO0AAAAJ
@@ -82,4 +85,8 @@ email: "scottericr@gmail.com"
 user_groups: []
 ---
 
-I'm a postdoctoral researcher in [Emilio Bruna's lab](http://brunalab.org/) at University of Florida working on the effects of drought and habitat fragmentation on a tropical plant.  I'm interested in the mechanisms of plant responses to stress and their consequences for natural and agricultural ecosystems.  [My Ph.D. focus](http://teaclimate.org) was on the effects of climate change and insect herbivory on the quality (flavor and health benefits) of tea (*Camellia sinensis*).
+I'm a Scientific Programmer & Educator at [The University of Arizona](https://datascience.cals.arizona.edu/).  I collaborate with researchers in the College of Agriculture and Life Sciences on statistics, data wrangling, and data visualization. The workshops I teach are on a variety or beginner and intermediate data science topics, typically in R. My background is in plant chemical ecology, plant–insect interactions, and plant demography. I'm also a huge tea geek and occasionally do tea science communication.
+
+<!-- for link verification -->
+<a rel="me" href="https://fosstodon.org/@LeafyEricScott" style="display: none;">Mastodon</a>
+
