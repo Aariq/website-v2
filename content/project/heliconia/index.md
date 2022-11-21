@@ -8,7 +8,7 @@ tags:
 date: "2020-06-15T00:00:00Z"
 
 # Optional external URL for project (replaces project detail page).
-external_link: http://brunalab.org/plant-population-dynamics-in-fragmented-landscapes/
+external_link: https://tropicos.netlify.app/project/heliconia/
 
 image:
   caption: Heliconia acuminata is pollinated by Phaethornis hummingbirds.

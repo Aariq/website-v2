@@ -10,21 +10,22 @@ authors:
 superuser: true
 
 # Role/position
-role: Postdoctoral Researcher
+role: Scientific Programmer & Educator
 
 # Organizations/Affiliations
 organizations:
-- name: University of Florida, Wildlife Ecology & Conservation
-  url: "https://wec.ifas.ufl.edu/"
+- name: Communications & Cyber Technologies Data Science, University of Arizona
+  url: "https://datascience.cals.arizona.edu/"
+- name: Data Science Institute
+  url: "https://datascience.arizona.edu/"
 
 # Short bio (displayed in user profile at end of posts)
-bio: I'm a postdoctoral researcher in [Emilio Bruna's lab](http://brunalab.org/) at University of Florida working on the effects of drought and habitat fragmentation on a tropical plant. I'm interested in the mechanisms of plant responses to stress and their consequences for natural and agricultural ecosystems.
+bio: I'm a Scientific Programmer & Educator at the University of Arizona in the [CCT Data Science group](https://datascience.cals.arizona.edu/). 
 
 interests:
-- Chemical ecology
-- Eco-metabolomics
-- Plant demography
+- Plant ecology
 - Statistics and programming in R
+- Reproducible research practices
 - Tea
 
 education:
@@ -46,7 +47,7 @@ education:
 social:
 - icon: envelope
   icon_pack: fas
-  link: 'mailto:scottericr@gmail.com'  # For a link to contact form use '#contact'.
+  link: 'mailto:ericrscott@arizona.edu'  # For a link to contact form use '#contact'.
 - icon: twitter
   icon_pack: fab
   link: https://twitter.com/leafyericscott
