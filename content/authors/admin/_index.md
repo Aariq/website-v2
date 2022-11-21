@@ -20,7 +20,7 @@ organizations:
   url: "https://datascience.arizona.edu/"
 
 # Short bio (displayed in user profile at end of posts)
-bio: I'm a Scientific Programmer & Educator at the University of Arizona in the [CCT Data Science group](https://datascience.cals.arizona.edu/). 
+bio: Scientific Programmer & Educator at the University of Arizona in the [CCT Data Science group](https://datascience.cals.arizona.edu/). 
 
 interests:
 - Plant ecology
