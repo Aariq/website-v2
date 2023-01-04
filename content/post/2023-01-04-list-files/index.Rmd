@@ -1,0 +1,45 @@
+---
+title: "Oh for `fs`, are you kidding me, base R?"
+author: Eric R. Scott
+date: '2023-01-05'
+slug: ["2023-01-05-list-files"]
+categories:
+  - Blog
+tags:
+  - R
+summary: ''
+lastmod: '2021-10-27T16:59:54-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+This is a cautionary tale about the base R function `list.files()`.  When you give it a vector of paths (which you totally can do), it **re-orders** the output alphabetically.  This screwed me over in a project I'm working on where I took file paths from a data frame, used them to `list.files()` and assumed (a sane assumption, I think) that the output would be in the same order.  In this case, I knew there was only one file per path, but I think I would have assumed this even if it was returning more than one file. 
+
+```{r}
+tmp <- tempdir()
+dir.create(file.path(tmp, "A"))
+dir.create(file.path(tmp, "B"))
+dir.create(file.path(tmp, "C"))
+file.create(file.path(tmp, "A", "A.txt"))
+file.create(file.path(tmp, "B", "B.txt"))
+file.create(file.path(tmp, "C", "C.txt"))
+
+file_list <- file.path(tmp, c("C", "A", "B"))
+file_list #in order C, A, B
+
+list.files(file_list, full.names = TRUE) #in order A, B, C!
+```
+
+
+So I was wrong, and it made all the work I did for the past several months somewhat wrong, but the good news is there is an easy fix.  The [`fs` package](https://fs.r-lib.org/) is the 'tidy' solution to working with files and file paths in R. The `fs` alternative to `list.files()` is [`dir_ls()`](https://fs.r-lib.org/reference/dir_ls.html), and like many tidyverse equivalents of base R functions, it is better because it does *less*.  It won't re-order the outputs and it always assumes you want the full paths (not just the file name as is the default with `list.files()`).
+
+```{r}
+library(fs)
+fs::dir_ls(file_list) #in correct order C, A, B
+```
+
+Needless to say, I'll be switching over to `fs::dir_ls()` for this project.  I'll also be spending some more time exploring the `fs` package and likely using it for all my file exploring and manipulation needs from now on.
