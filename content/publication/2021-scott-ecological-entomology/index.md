@@ -73,7 +73,8 @@ projects: [climate-leafhopper-quality]
 #   Otherwise, set `slides: ""`.
 slides: ""
 ---
-
+<!--
 Twitter thread:
 
-{{< tweet 1364958405484564487 >}}
+https://twitter.com/LeafyEricScott/status/1364958405484564487
+-->

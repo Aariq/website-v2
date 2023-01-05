@@ -81,6 +81,7 @@ slides: ""
 ---
 
 - Recipient of Postodctoral Excellence Award, sponsored by AoB Plants, for plant population ecology ($500)
-
+<!--
 Twitter thread:
-{{< tweet 1453799273049513993 >}}
+https://twitter.com/LeafyEricScott/status/1453799273049513993
+-->
